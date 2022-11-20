@@ -20,6 +20,7 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@types/node": "^18.11.9",
     "alex": "^11.0.0",
+    "ava": "^5.1.0",
     "esbuild": "^0.15.14",
     "husky": "^8.0.2",
     "prettier": "^2.7.1",
@@ -29,6 +30,7 @@
     "rollup-plugin-dts": "^5.0.0",
     "rollup-plugin-esbuild": "^5.0.0",
     "semantic-release": "^19.0.5",
+    "ts-node": "^10.9.1",
     "typescript": "^4.9.3"
   },
   "scripts": {
@@ -38,6 +40,16 @@
     "build": " rollup -c .config/rollup.config.js",
     "dev": "yarn build --watch",
     "lint": "alex .",
-    "semantic-release": "semantic-release --branches main"
-  }
+    "semantic-release": "semantic-release --branches main",
+    "test": "ava"
+  },
+  "ava": {
+		"extensions": {
+			"ts": "module"
+		},
+		"nodeArguments": [
+			"--loader=ts-node/esm",
+			"--experimental-specifier-resolution=node"
+		]
+	}
 }
