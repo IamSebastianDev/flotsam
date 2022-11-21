@@ -12,7 +12,12 @@ export class Flotsam {
      * @description
      * The absolute path of the directory to use as storage for the json documents
      */
-    #root: string;
+    /**
+     * @type { boolean }
+     * @description
+     * Boolean indicating if the database has been connected successfully.
+     */
+    connected: boolean;
 
     /**
      * @type { Record<string, Collection<any>> }
@@ -23,7 +28,18 @@ export class Flotsam {
 
     #collections: Record<string, Collection<any>> = {};
 
-    #handlers!: Record<FlotsamEvent, Array<Subscriber>>;
+    #handlers: Record<FlotsamEvent, Array<Subscriber>> = {
+        close: [() => (this.connected = false)],
+        delete: [],
+        deserialize: [],
+        drop: [],
+        insert: [],
+        connect: [() => (this.connected = true)],
+        serialize: [],
+        update: [],
+        upsert: [],
+        error: [],
+    };
     constructor(init: FlotsamInit) {
         this.#root = __root(init.root);
     }
@@ -95,7 +111,6 @@ export class Flotsam {
     }
 
     /**
-     * @private
      * @description
      * Method to trigger callbacks registered via the `on` method.
      *
@@ -103,7 +118,7 @@ export class Flotsam {
      * @param { any[] } args - optional arguments that are relayed to the handler function.
      */
 
-    private emit(event: FlotsamEvent, ...args: any[]): void {
+    emit(event: FlotsamEvent, ...args: any[]): void {
         this.#handlers[event].forEach((handler) => handler(...args));
     }
 }
