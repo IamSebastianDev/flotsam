@@ -9,10 +9,11 @@ import { Collection } from './Collection';
 export class Flotsam {
     /**
      * @type { string }
-     * @private
      * @description
      * The absolute path of the directory to use as storage for the json documents
      */
+    root: string;
+
     /**
      * @type { boolean }
      * @description
@@ -43,6 +44,7 @@ export class Flotsam {
     };
 
     constructor(init: FlotsamInit) {
+        this.root = __root(init.root);
         this.connected = false;
     }
 
