@@ -1,0 +1,11 @@
+.config
+.github
+.husky
+.vscode
+node_modules
+.alexrc
+.commitlintrc.json
+.prettierignore
+.prettierrc
+commitlint.config.json
+tsconfig.json
