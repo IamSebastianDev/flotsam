@@ -77,6 +77,19 @@ export class Flotsam {
 
     /**
      * @description
+     * Method to remove a collection from the physical storage directory or just the collection cache.
+     *
+     * @param { string } namespace - the namespace of the collection to drop.
+     * @param { boolean } [soft] - optional boolean indicating if the physical documents should be kept.
+     * @returns { Promise<boolean> } - true if the collection was successfully dropped.
+     */
+
+    async drop(namespace: string, soft?: boolean): Promise<boolean> {
+        return await this.#collections[namespace].drop(soft);
+    }
+
+    /**
+     * @description
      * Method to gracefully shut down the database. Calling the `close` method will
      * serialize all remaining `Collections`.
      */
