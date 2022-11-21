@@ -110,7 +110,7 @@ export class Flotsam {
 
     async collect<T extends Record<string, unknown>>(namespace: string): Promise<Collection<T>> {
         if (!this.#collections[namespace]) {
-            this.#collections[namespace] = new Collection<T>(namespace);
+            this.#collections[namespace] = new Collection<T>(this, namespace);
             await this.#collections[namespace].deserialize();
         }
         return this.#collections[namespace];

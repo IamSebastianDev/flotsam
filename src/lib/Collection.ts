@@ -1,12 +1,13 @@
 /** @format */
 
 import { __root } from '../utils';
-import fs from 'node:fs';
+import { Flotsam } from './Flotsam';
+import { readdir, mkdir, rmdir, stat } from 'node:fs/promises';
 
 export class Collection<T extends Record<string, unknown>> {
-    #dir: string;
-    constructor(private namespace: string) {
-        this.#dir = __root(this.namespace);
+    dir: string;
+    constructor(private ctx: Flotsam, private namespace: string) {
+        this.dir = __root(this.ctx.root, this.namespace);
 
         process.on('SIGINT', async () => {
             await this.serialize();
