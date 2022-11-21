@@ -1,6 +1,7 @@
 /** @format */
 
-import fs from 'node:fs';
+import { mkdir, readdir, rmdir, stat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { __root } from '../utils';
 import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber } from '../types';
 import { Collection } from './Collection';
@@ -40,8 +41,46 @@ export class Flotsam {
         upsert: [],
         error: [],
     };
+
     constructor(init: FlotsamInit) {
-        this.#root = __root(init.root);
+        this.connected = false;
+    }
+
+    /**
+     * @description
+     * Method to initialize the Database. Check if the physical storage
+     * directory exists, and if not, create the necessary directories
+     * recursively.
+     *
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     *
+     * const db = new Flotsam({ root: './.store' });
+     * await db.connect();
+     * ```
+     *
+     * @returns { Promise<boolean> } `true` if the connection is established
+     */
+
+    async connect(): Promise<boolean> {
+        return new Promise(async (res, rej) => {
+            try {
+                /**
+                 * Check if the root dir passed in the initialization
+                 * object exists, if not create it.
+                 */
+
+                if (!existsSync(this.root)) {
+                    await mkdir(this.root, { recursive: true });
+                }
+
+                this.emit('connect');
+                res(true);
+            } catch (e) {
+                this.emit('error', e);
+                rej(e);
+            }
+        });
     }
 
     /**
