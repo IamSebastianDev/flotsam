@@ -26,6 +26,16 @@ export class Collection<T extends Record<string, unknown>> {
         return [];
     }
 
-    async deserialize() {}
-    async serialize() {}
+    async drop(): Promise<boolean> {
+        return new Promise(async (res, rej) => {
+            try {
+                await rmdir(this.dir);
+                this.ctx.emit('drop', this);
+                res(true);
+            } catch (e) {
+                this.ctx.emit('error', e);
+                rej(e);
+            }
+        });
+    }
 }
