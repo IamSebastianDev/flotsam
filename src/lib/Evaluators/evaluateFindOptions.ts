@@ -6,5 +6,5 @@ export const evaluateFindOptions = <T extends Record<string, unknown>>(
     document: Document<T>,
     findOptions: FindOptions<T>
 ) => {
-    return Object.entries(findOptions).every(([prop, evaluator]) => evaluator(document[prop]));
+    return Object.entries(findOptions).every(([prop, evaluator]) => evaluator(document[prop], prop));
 };
