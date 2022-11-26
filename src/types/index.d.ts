@@ -6,3 +6,4 @@ export type { Unsubscriber } from './Unsubscriber';
 export type { DocumentInit } from './DocumentInit';
 export type { QueueTask } from './QueueTask';
 export type { Document } from './Document';
+export type { Rejector } from './Rejector';
