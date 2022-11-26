@@ -28,8 +28,18 @@ export class Collection<T extends Record<string, unknown>> {
         });
     }
 
-    get count() {
-        return 0;
+    /**
+     * @type { Promise<number> }
+     * @description
+     * Returns the number of `Documents` currently in the collection.
+     */
+
+    get count(): Promise<number> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                res([...this.#documents.values()].length);
+            })
+        );
     }
 
     get entries(): Promise<Array<Document<T>>> {
