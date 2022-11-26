@@ -1,18 +1,22 @@
 /** @format */
-import { DocumentInit } from '../types';
+import { DocumentInit, Document } from '../types';
 import { ObjectId } from './ObjectId';
 
-export class Document<T extends Record<string, unknown>> {
+export class JSONDocument<T extends Record<string, unknown>> {
     #id: ObjectId;
     constructor(private data: DocumentInit<T>) {
         this.#id = this.data._id ? ObjectId.from(this.data._id) : new ObjectId();
     }
 
-    toFile() {
-        return JSON.stringify(this.data._);
+    get id() {
+        return this.#id;
     }
 
-    toObject(): T & { _id: ObjectId } {
+    toFile() {
+        return JSON.stringify({ _id: this.#id.str, _: this.data._ });
+    }
+
+    toDoc(): Document<T> {
         return { ...this.data._, _id: this.#id };
     }
 }
