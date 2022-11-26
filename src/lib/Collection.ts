@@ -147,7 +147,7 @@ export class Collection<T extends Record<string, unknown>> {
      * @returns { Promise<boolean> } true if the collection was successfully dropped
      */
 
-    async drop(): Promise<boolean> {
+    async jettison(): Promise<boolean> {
         return this.#queue.enqueue(
             new Promise(async (res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {

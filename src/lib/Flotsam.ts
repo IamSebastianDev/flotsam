@@ -125,11 +125,11 @@ export class Flotsam {
      * @returns { Promise<boolean> } - true if the collection was successfully dropped.
      */
 
-    async drop(namespace: string, soft: boolean = false): Promise<boolean> {
+    async jettison(namespace: string, soft: boolean = false): Promise<boolean> {
         if (!this.#collections[namespace]) return false;
 
         if (!soft) {
-            await this.#collections[namespace].drop();
+            await this.#collections[namespace].jettison();
         }
 
         delete this.#collections[namespace];
