@@ -66,7 +66,7 @@ export class ObjectId {
      * Static method to compare two ObjectIds for equality
      *
      * @param { ObjectId } actual
-     * @param { ObjectId } compared
+     * @param { ObjectId } toCompare
      * @returns { boolean } a boolean indicating if the two ObjectIds match.
      */
 
