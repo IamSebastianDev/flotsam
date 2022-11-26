@@ -73,28 +73,69 @@ export class Collection<T extends Record<string, unknown>> {
         };
     }
 
-        // get all documents inside the dir
-        this.#files = (await readdir(this.dir)).filter((file) => ObjectId.is(file));
+    /**
+     * @public
+     * @method
+     * @description
+     * Method used to deserialize the collection. This will load all records
+     * stored in the namespaced folder into the internal cache.
+     *
+     * @returns { Promise<boolean> } true if the deserialization is successful
+     */
 
-        for await (const document of this.#files) {
-            const doc = JSON.parse(await readFile(resolve(this.dir, document), 'utf-8'));
-            this.#documents.set(ObjectId.from(doc._id), new Document({ _id: document, _: doc }));
-        }
+    async deserialize(): Promise<boolean> {
+        return this.#queue.enqueue(
+            new Promise(async (res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    if (!existsSync(this.dir)) {
+                        await mkdir(this.dir);
+                    }
 
-        this.ctx.emit('deserialize', this);
+                    // get all documents inside the dir
+                    this.#files = (await readdir(this.dir)).filter((file) => ObjectId.is(file));
+
+                    for await (const document of this.#files) {
+                        const doc: T & { _id: string } = JSON.parse(
+                            await readFile(resolve(this.dir, document), 'utf-8')
+                        );
+                        this.#documents.set(ObjectId.from(doc._id).str, new JSONDocument<T>({ _id: document, _: doc }));
+                    }
+
+                    this.ctx.emit('deserialize', this);
+                    res(true);
+                });
+            })
+        );
     }
 
-    async serialize() {
-        if (!existsSync(this.dir)) {
-            await mkdir(this.dir);
-        }
+    /**
+     * @public
+     * @method
+     * @description
+     * Method used to serialize the collection. This will store all objects in the
+     * internal cache as record in the namespaced folder.
+     *
+     * @returns { Promise<boolean> } true if the serialization is successful
+     */
 
-        for await (const [id, document] of [...this.#documents.entries()]) {
-            const path = resolve(this.dir, id.str);
-            await writeFile(path, document.toFile(), 'utf-8');
-        }
+    async serialize(): Promise<boolean> {
+        return this.#queue.enqueue(
+            new Promise(async (res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    if (!existsSync(this.dir)) {
+                        await mkdir(this.dir);
+                    }
 
-        this.ctx.emit('serialize', this);
+                    for await (const [id, document] of [...this.#documents.entries()]) {
+                        const path = resolve(this.dir, id);
+                        await writeFile(path, document.toFile(), 'utf-8');
+                    }
+
+                    this.ctx.emit('serialize', this);
+                    res(true);
+                });
+            })
+        );
     }
 
     async drop(): Promise<boolean> {
