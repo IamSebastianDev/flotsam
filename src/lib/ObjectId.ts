@@ -74,7 +74,7 @@ export class ObjectId {
         return actual.str === toCompare.str;
     }
 
-    #timestamp: number = this.createTimestamp();
+    #timestamp: string = this.createTimestamp();
     #unique: string = this.createUnique();
 
     private getRandomCharIndex(ceil: number): number {
@@ -85,8 +85,8 @@ export class ObjectId {
         return [char, char.toUpperCase()];
     }
 
-    private createTimestamp(): number {
-        return parseInt(Date.now().toString().slice(-7, -1).padEnd(6, '0'));
+    private createTimestamp(): string {
+        return Date.now().toString().slice(-7, -1).padStart(6, '7');
     }
 
     private createUnique(): string {
@@ -103,14 +103,11 @@ export class ObjectId {
      */
 
     set timestamp(value: string) {
-        const converted = parseInt(value);
-        if (!isNaN(converted)) {
-            this.#timestamp = converted;
-        }
+        this.#timestamp = value.slice(0, 6).padEnd(6, '7');
     }
 
     get timestamp(): string {
-        return this.#timestamp.toString();
+        return this.#timestamp;
     }
 
     /**
