@@ -138,7 +138,27 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
+    /**
+     * @public
+     * @method
+     * @description
+     * Drops the collection and removes all physical `Documents` stored on disk.
+     *
+     * @returns { Promise<boolean> } true if the collection was successfully dropped
+     */
+
     async drop(): Promise<boolean> {
+        return this.#queue.enqueue(
+            new Promise(async (res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    await rm(this.dir, { recursive: true, force: true });
+                    this.ctx.emit('drop', this);
+
+                    res(true);
+                });
+            })
+        );
+    }
     /**
      * @description
      * Method to delete the first found `Document` by a given set of find options. Returns the deleted `Document`
