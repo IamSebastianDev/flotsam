@@ -215,5 +215,57 @@ export class Collection<T extends Record<string, unknown>> {
             })
         );
     }
+
+    /**
+     * @description
+     * Method to select the first `Document` from the collection that satisfies it's id.
+     *
+     * @param { string } id - the id of the `Document` to select
+     * @returns {Promise<Document | null>} the first found `Document` or null if none was found
+     */
+
+    async findOneById(id: string): Promise<Document<T> | null> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const item = [...this.#documents.entries()].find(([key]) =>
+                        ObjectId.compare(ObjectId.from(key), ObjectId.from(id))
+                    );
+
+                    if (item === undefined) {
+                        return res(null);
+                    }
+
+                    return res(item[1].toDoc());
+                });
+            })
+        );
+    }
+
+    /**
+     * @description
+     * Method to select the first found `Document` by a given set of find options. Returns the found `Document`
+     * or null, if no `Document` was found.
+     *
+     * @param { FindOptions } findOptions - the find options to the find the `Document` by.
+     * @returns { Promise<Document | null> } the selected `Document` or null, if no `Document` was found.
+     */
+
+    async findOne(findOptions: FindOptions<T>): Promise<Document<T> | null> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const item = [...this.#documents.entries()].find(([, value]) =>
+                        evaluateFindOptions(value.toDoc(), findOptions)
+                    );
+
+                    if (item === undefined) {
+                        return res(null);
+                    }
+
+                    return res(item[1].toDoc());
+                });
+            })
+        );
     }
 }
