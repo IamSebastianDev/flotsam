@@ -1,17 +1,20 @@
 /** @format */
 
-import { __root } from '../utils';
+import { __root, safeAsyncAbort } from '../utils';
 import { Flotsam } from './Flotsam';
-import { readdir, mkdir, rmdir, stat, readFile, writeFile } from 'node:fs/promises';
+import { readdir, mkdir, rm, stat, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { ObjectId } from './ObjectId';
-import { Document } from './Document';
+import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
+import { Queue } from './Queue';
+import type { Document, Rejector, FindOptions } from '../types';
 
 export class Collection<T extends Record<string, unknown>> {
     dir: string;
     #files: string[] = [];
-    #documents: Map<ObjectId, Document<T>> = new Map();
+    #documents: Map<string, JSONDocument<T>> = new Map();
+    #queue: Queue = new Queue();
     constructor(private ctx: Flotsam, private namespace: string) {
         this.dir = resolve(ctx.root, this.namespace);
 
