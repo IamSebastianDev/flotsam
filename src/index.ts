@@ -1,5 +1,27 @@
 /** @format */
 
 export { Flotsam } from './lib';
-export type { Collection, ObjectId } from './lib';
-export type { FlotsamInit, FlotsamEvent, Subscriber, Unsubscriber } from './types';
+export {
+    Like,
+    Is,
+    Exactly,
+    GreaterThan,
+    LessThan,
+    In,
+    GreaterThanOrEqual,
+    LessThanOrEqual,
+    Unsafe,
+} from './lib/Evaluators';
+
+export type { Collection, ObjectId, JSONDocument } from './lib';
+export type {
+    FlotsamInit,
+    FlotsamEvent,
+    Subscriber,
+    Unsubscriber,
+    EvaluatorFunction,
+    Document,
+    DocumentInit,
+    QueueTask,
+    Rejector,
+} from './types';
