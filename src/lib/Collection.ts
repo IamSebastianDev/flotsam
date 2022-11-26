@@ -159,6 +159,32 @@ export class Collection<T extends Record<string, unknown>> {
             })
         );
     }
+
+    /**
+     * @description
+     * Inserts a `Document` into the database.
+     *
+     * @param { Record<string, unknown> } data - the data to insert as `Document`
+     * @returns { Promise<Document> } the created Document
+     */
+
+    async insertOne(data: T): Promise<Document<T>> {
+        return this.#queue.enqueue(
+            new Promise(async (res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const doc = new JSONDocument({ _: data });
+                    const path = resolve(this.dir, doc.id.str);
+
+                    await writeFile(path, doc.toFile(), 'utf-8');
+                    this.#documents.set(doc.id.str, doc);
+
+                    this.ctx.emit('insert', doc.toDoc());
+                    res(doc.toDoc());
+                });
+            })
+        );
+    }
+
     /**
      * @description
      * Method to delete the first found `Document` by a given set of find options. Returns the deleted `Document`
