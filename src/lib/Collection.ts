@@ -42,8 +42,18 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
+    /**
+     * @type { Promise<Document[]> }
+     * @description
+     * Returns a copy of all `Documents` in the collection.
+     */
+
     get entries(): Promise<Array<Document<T>>> {
-        return new Promise((res) => res([...this.#documents.values()]));
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                res([...this.#documents.values()].map((doc) => ({ ...doc.toDoc() })));
+            })
+        );
     }
 
     async deserialize() {
