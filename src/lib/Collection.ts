@@ -56,14 +56,22 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
-    async deserialize() {
-        /**
-         * Deserialization
-         */
+    /**
+     * @private
+     * @method
+     * @description
+     * Private method to create a rejector by binding a `Promise` rejection context to a function.
+     *
+     * @param { Rejector } reject - the `reject` function of a `Promise`
+     * @returns { Rejector } a function to reject and emit errors
+     */
 
-        if (!existsSync(this.dir)) {
-            await mkdir(this.dir);
-        }
+    private rejector(reject: Rejector): Rejector {
+        return (error: unknown) => {
+            this.ctx.emit('error', error);
+            reject(error);
+        };
+    }
 
         // get all documents inside the dir
         this.#files = (await readdir(this.dir)).filter((file) => ObjectId.is(file));
