@@ -9,6 +9,7 @@ import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
 import { Queue } from './Queue';
 import type { Document, Rejector, FindOptions } from '../types';
+import { evaluateFindOptions } from './Evaluators/evaluateFindOptions';
 
 export class Collection<T extends Record<string, unknown>> {
     dir: string;
@@ -69,15 +70,35 @@ export class Collection<T extends Record<string, unknown>> {
     }
 
     async drop(): Promise<boolean> {
-        return new Promise(async (res, rej) => {
-            try {
-                await rmdir(this.dir);
-                this.ctx.emit('drop', this);
-                res(true);
-            } catch (e) {
-                this.ctx.emit('error', e);
-                rej(e);
-            }
-        });
+    /**
+     * @description
+     * Method to delete the first found `Document` by a given set of find options. Returns the deleted `Document`
+     * or false, if no `Document` was found.
+     *
+     * @param { FindOptions } findOptions - the find options to the find the `Document` by.
+     * @returns { Promise<Document | false> } the deleted `Document` or false, if no `Document` was found.
+     */
+
+    async deleteOne(findOptions: FindOptions<T>): Promise<Document<T> | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const item = [...this.#documents.entries()].find(([, value]) =>
+                        evaluateFindOptions(value.toDoc(), findOptions)
+                    );
+
+                    if (item !== undefined) {
+                        this.#documents.delete(item[0]);
+                        await rm(resolve(this.dir, item[0]));
+                        this.ctx.emit('delete');
+
+                        return res(item[1].toDoc());
+                    }
+
+                    return res(false);
+                });
+            })
+        );
+    }
     }
 }
