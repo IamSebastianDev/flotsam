@@ -190,6 +190,18 @@ export class Collection<T extends Record<string, unknown>> {
 
     // @Delete Operations
 
+    private async delete(item: [string, JSONDocument<T>] | undefined, res: (reason: any) => void) {
+        if (item === undefined) {
+            return res(false);
+        }
+
+        this.#documents.delete(item[0]);
+        await rm(resolve(this.dir, item[0]));
+        this.ctx.emit('delete');
+
+        return res(item[1].toDoc());
+    }
+
     /** //@DeleteOneById
      * @description
      * Method to delete the first found `Document` by a given id. Returns the deleted `Document`
@@ -207,15 +219,7 @@ export class Collection<T extends Record<string, unknown>> {
                         ObjectId.compare(ObjectId.from(key), ObjectId.from(id))
                     );
 
-                    if (item !== undefined) {
-                        this.#documents.delete(item[0]);
-                        await rm(resolve(this.dir, item[0]));
-                        this.ctx.emit('delete');
-
-                        return res(item[1].toDoc());
-                    }
-
-                    return res(false);
+                    return await this.delete(item, res);
                 });
             })
         );
@@ -238,15 +242,7 @@ export class Collection<T extends Record<string, unknown>> {
                         evaluateFindOptions(value.toDoc(), findOptions)
                     );
 
-                    if (item !== undefined) {
-                        this.#documents.delete(item[0]);
-                        await rm(resolve(this.dir, item[0]));
-                        this.ctx.emit('delete');
-
-                        return res(item[1].toDoc());
-                    }
-
-                    return res(false);
+                    return await this.delete(item, res);
                 });
             })
         );
@@ -336,6 +332,30 @@ export class Collection<T extends Record<string, unknown>> {
 
     //@Update Operations
 
+    /**
+     * @private
+     * @description
+     * Internal method to update a `Document`
+     *
+     * @param { [string, JSONDocument] | undefined } item - the found Document to update
+     * @param { Partial<any> } data - the data to update the document with
+     * @param { function(result: any): void } res - the method to resolve the outer promise
+     */
+
+    private async update(item: [string, JSONDocument<T>] | undefined, data: Partial<T>, res: (result: any) => void) {
+        if (item === undefined) {
+            return res(false);
+        }
+
+        const [id, document] = item;
+
+        const updated = new JSONDocument({ _id: id, _: { ...document.toDoc(), ...data } });
+        this.#documents.set(id, updated);
+        await writeFile(resolve(this.dir, id), updated.toFile(), 'utf8');
+
+        return res(updated.toDoc());
+    }
+
     /** //@UpdateOneById
      * @description
      * Method to select the first `Document` from the collection that satisfies it's id
@@ -355,15 +375,57 @@ export class Collection<T extends Record<string, unknown>> {
                         ObjectId.compare(ObjectId.from(key), ObjectId.from(id))
                     );
 
-                    if (item !== undefined) {
-                        const updated = new JSONDocument({ _id: item[0], _: { ...item[1].toDoc(), ...data } });
-                        this.#documents.set(item[0], updated);
-                        await writeFile(resolve(this.dir, item[0]), updated.toFile(), 'utf8');
+                    return await this.update(item, data, res);
+                });
+            })
+        );
+    }
 
-                        return res(updated.toDoc());
-                    }
+    /** //@UpdateOne
+     * @description
+     * Method to select the first `Document` from the collection that satisfies a given set
+     * of find options and update it with the given data.
+     *
+     * @param { FindOptions } findOptions - the find options to find the `Document` by.
+     * @param { Record<string, unknown> } data - the data to update the `Document` with.
+     * @returns { Promise<Document | false> } a Promise containing the updated `Document`
+     * or false, indicating that no `Document was found`.
+     */
 
-                    return res(false);
+    async updateOne(findOptions: FindOptions<T>, data: Partial<T>): Promise<Document<T> | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const item = [...this.#documents.entries()].find(([, value]) =>
+                        evaluateFindOptions(value.toDoc(), findOptions)
+                    );
+
+                    return await this.update(item, data, res);
+                });
+            })
+        );
+    }
+
+    /** //@UpdateOne
+     * @description
+     * Method to select the first `Document` from the collection that satisfies a given set
+     * of find simplified options and update it with the given data.
+     *
+     * @param { FindByProperty } findOptions - the find options to find the `Document` by.
+     * @param { Record<string, unknown> } data - the data to update the `Document` with.
+     * @returns { Promise<Document | false> } a Promise containing the updated `Document`
+     * or false, indicating that no `Document was found`.
+     */
+
+    async updateOneBy(findOptions: FindByProperty<T>, data: Partial<T>): Promise<Document<T> | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const item = [...this.#documents.entries()].find(([, value]) =>
+                        evaluateFindByPropertyOptions(value.toDoc(), findOptions)
+                    );
+
+                    return await this.update(item, data, res);
                 });
             })
         );
