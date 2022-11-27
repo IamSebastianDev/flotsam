@@ -11,12 +11,12 @@ import { isNonNull } from '../../utils';
  * @returns { EvaluatorFunction }
  */
 
-export const In = (condition: Array<unknown>): EvaluatorFunction => {
+export const In = (...condition: Array<unknown>): EvaluatorFunction => {
     return (value: unknown, propName?: string) => {
         if (!isNonNull(value)) {
             throw new TypeError(`[Query] Property ${propName} is null or undefined.`);
         }
 
-        return condition.findIndex((e) => e == value) !== -1;
+        return [...condition].flat().findIndex((e) => e == value) !== -1;
     };
 };
