@@ -3,6 +3,14 @@
 import { EvaluatorFunction } from '../../types';
 import { isNonNull } from '../../utils';
 
+/**
+ * @description
+ * Method to check if a given set of values satisfies the checked value.
+ *
+ * @param { Array<unknown> } condition - Array of values to check a value for being a part of.
+ * @returns { EvaluatorFunction }
+ */
+
 export const In = (condition: Array<unknown>): EvaluatorFunction => {
     return (value: unknown, propName?: string) => {
         if (!isNonNull(value)) {
