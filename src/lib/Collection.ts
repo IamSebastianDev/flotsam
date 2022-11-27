@@ -188,6 +188,37 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
+     * Method to delete the first found `Document` by a given id. Returns the deleted `Document`
+     * or false, if no `Document` was found.
+     *
+     * @param { string } id - the id to the find the `Document` by.
+     * @returns { Promise<Document | false> } the deleted `Document` or false, if no `Document` was found.
+     */
+
+    async deleteOneById(id: string): Promise<Document<T> | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const item = [...this.#documents.entries()].find(([key]) =>
+                        ObjectId.compare(ObjectId.from(key), ObjectId.from(id))
+                    );
+
+                    if (item !== undefined) {
+                        this.#documents.delete(item[0]);
+                        await rm(resolve(this.dir, item[0]));
+                        this.ctx.emit('delete');
+
+                        return res(item[1].toDoc());
+                    }
+
+                    return res(false);
+                });
+            })
+        );
+    }
+
+    /**
+     * @description
      * Method to delete the first found `Document` by a given set of find options. Returns the deleted `Document`
      * or false, if no `Document` was found.
      *
