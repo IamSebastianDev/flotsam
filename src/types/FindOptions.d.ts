@@ -1,7 +1,14 @@
 /** @format */
 
 import { EvaluatorFunction } from './EvaluatorFunction';
+import { FindByProperty } from './FindByProperty';
 
 export type FindOptions<T> = {
-    [Prop in keyof T]: EvaluatorFunction;
+    where: FindByProperty<T> | FindByProperty<T>[];
+    order?: {
+        property: string;
+        by: 'ASC' | 'DESC';
+    };
+    skip?: number;
+    take?: number;
 };
