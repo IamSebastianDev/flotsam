@@ -161,7 +161,9 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
-    /**
+    //@Insert Operations
+
+    /** // @InsertOne
      * @description
      * Inserts a `Document` into the database.
      *
@@ -186,7 +188,9 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
-    /**
+    // @Delete Operations
+
+    /** //@DeleteOneById
      * @description
      * Method to delete the first found `Document` by a given id. Returns the deleted `Document`
      * or false, if no `Document` was found.
@@ -217,7 +221,7 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
-    /**
+    /** //@DeleteOne
      * @description
      * Method to delete the first found `Document` by a given set of find options. Returns the deleted `Document`
      * or false, if no `Document` was found.
@@ -248,7 +252,9 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
-    /**
+    //@Find Operations
+
+    /** //@FindOneById
      * @description
      * Method to select the first `Document` from the collection that satisfies it's id.
      *
@@ -274,7 +280,7 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
-    /**
+    /** //@FindOne
      * @description
      * Method to select the first found `Document` by a given set of find options. Returns the found `Document`
      * or null, if no `Document` was found.
@@ -301,7 +307,7 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
-    /**
+    /** //@FindOneBy
      * @description
      * Method to select the first found `Document` by a given set of find by property options.
      * Returns the found `Document` or null, if no `Document` was found.
@@ -323,6 +329,41 @@ export class Collection<T extends Record<string, unknown>> {
                     }
 
                     return res(item[1].toDoc());
+                });
+            })
+        );
+    }
+
+    //@Update Operations
+
+    /** //@UpdateOneById
+     * @description
+     * Method to select the first `Document` from the collection that satisfies it's id
+     * and update it with the given data.
+     *
+     * @param { string } id - the string to find the `Document` by.
+     * @param { Record<string, unknown> } data - the data to update the `Document` with.
+     * @returns { Promise<Document | false> } a Promise containing the updated `Document`
+     * or false, indicating that no `Document was found`.
+     */
+
+    async updateOneById(id: string, data: Partial<T>): Promise<Document<T> | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const item = [...this.#documents.entries()].find(([key]) =>
+                        ObjectId.compare(ObjectId.from(key), ObjectId.from(id))
+                    );
+
+                    if (item !== undefined) {
+                        const updated = new JSONDocument({ _id: item[0], _: { ...item[1].toDoc(), ...data } });
+                        this.#documents.set(item[0], updated);
+                        await writeFile(resolve(this.dir, item[0]), updated.toFile(), 'utf8');
+
+                        return res(updated.toDoc());
+                    }
+
+                    return res(false);
                 });
             })
         );
