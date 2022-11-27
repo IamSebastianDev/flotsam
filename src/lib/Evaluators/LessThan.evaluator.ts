@@ -23,7 +23,7 @@ export const LessThan = (condition: number): EvaluatorFunction => {
             );
         }
 
-        return condition < value;
+        return value < condition;
     };
 };
 
@@ -47,6 +47,6 @@ export const LessThanOrEqual = (condition: number): EvaluatorFunction => {
             );
         }
 
-        return condition <= value;
+        return value <= condition;
     };
 };
