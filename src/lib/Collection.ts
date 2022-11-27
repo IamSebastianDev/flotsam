@@ -9,7 +9,8 @@ import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
 import { Queue } from './Queue';
 import type { Document, Rejector, FindOptions } from '../types';
-import { evaluateFindOptions } from './Evaluators/evaluateFindOptions';
+import { evaluateFindByPropertyOptions, evaluateFindOptions } from './Evaluators/evaluateFindOptions';
+import { FindByProperty } from '../types/FindByProperty';
 
 export class Collection<T extends Record<string, unknown>> {
     dir: string;
@@ -257,6 +258,33 @@ export class Collection<T extends Record<string, unknown>> {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     const item = [...this.#documents.entries()].find(([, value]) =>
                         evaluateFindOptions(value.toDoc(), findOptions)
+                    );
+
+                    if (item === undefined) {
+                        return res(null);
+                    }
+
+                    return res(item[1].toDoc());
+                });
+            })
+        );
+    }
+
+    /**
+     * @description
+     * Method to select the first found `Document` by a given set of find by property options.
+     * Returns the found `Document` or null, if no `Document` was found.
+     *
+     * @param { FindByProperty } findOptions - the find options to the find the `Document` by.
+     * @returns { Promise<Document | null> } the selected `Document` or null, if no `Document` was found.
+     */
+
+    async findOneBy(findOptions: FindByProperty<T>): Promise<Document<T> | null> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const item = [...this.#documents.entries()].find(([, value]) =>
+                        evaluateFindByPropertyOptions(value.toDoc(), findOptions)
                     );
 
                     if (item === undefined) {
