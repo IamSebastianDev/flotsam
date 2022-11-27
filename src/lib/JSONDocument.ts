@@ -6,6 +6,7 @@ export class JSONDocument<T extends Record<string, unknown>> {
     #id: ObjectId;
     constructor(private data: DocumentInit<T>) {
         this.#id = this.data._id ? ObjectId.from(this.data._id) : new ObjectId();
+        delete this.data._._id;
     }
 
     get id() {
