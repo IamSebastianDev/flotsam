@@ -23,7 +23,7 @@ test.afterEach(async (t) => {
     await db.close();
 });
 
-test('[Evaluators] Exactly should match two identical values exactly', async (t) => {
+test.serial('[Evaluators] Exactly should match two identical values exactly', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -32,7 +32,7 @@ test('[Evaluators] Exactly should match two identical values exactly', async (t)
     t.is(result?.data, 'test');
 });
 
-test('[Evaluators] Exactly should not match two not identical values exactly', async (t) => {
+test.serial('[Evaluators] Exactly should not match two not identical values exactly', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -41,7 +41,7 @@ test('[Evaluators] Exactly should not match two not identical values exactly', a
     t.not(result?.data, 'test2');
 });
 
-test('[Evaluators] Exactly should throws wenn accessing a non existing property.', async (t) => {
+test.serial('[Evaluators] Exactly should throws wenn accessing a non existing property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -51,7 +51,7 @@ test('[Evaluators] Exactly should throws wenn accessing a non existing property.
     });
 });
 
-test('[Evaluators] Is should match two identical values loosely', async (t) => {
+test.serial('[Evaluators] Is should match two identical values loosely', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -60,7 +60,7 @@ test('[Evaluators] Is should match two identical values loosely', async (t) => {
     t.is(result?.data, 'test');
 });
 
-test('[Evaluators] Is should not match two not identical values loosely', async (t) => {
+test.serial('[Evaluators] Is should not match two not identical values loosely', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -69,7 +69,7 @@ test('[Evaluators] Is should not match two not identical values loosely', async 
     t.not(result?.data, 'test2');
 });
 
-test('[Evaluators] Is should throw wenn accessing a non existing property.', async (t) => {
+test.serial('[Evaluators] Is should throw wenn accessing a non existing property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -79,7 +79,7 @@ test('[Evaluators] Is should throw wenn accessing a non existing property.', asy
     });
 });
 
-test('[Evaluators] Is should match a property loosely.', async (t) => {
+test.serial('[Evaluators] Is should match a property loosely.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -88,7 +88,7 @@ test('[Evaluators] Is should match a property loosely.', async (t) => {
     t.is(result?.number, 2);
 });
 
-test('[Evaluators] Like should compare and match two values that intersect', async (t) => {
+test.serial('[Evaluators] Like should compare and match two values that intersect', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -97,7 +97,7 @@ test('[Evaluators] Like should compare and match two values that intersect', asy
     t.is(result?.data, 'test');
 });
 
-test('[Evaluators] Like should compare and not match two values that do not intersect', async (t) => {
+test.serial('[Evaluators] Like should compare and not match two values that do not intersect', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -106,7 +106,7 @@ test('[Evaluators] Like should compare and not match two values that do not inte
     t.not(result?.data, 'abc');
 });
 
-test('[Evaluators] Like should throw wenn passed a non existing property.', async (t) => {
+test.serial('[Evaluators] Like should throw wenn passed a non existing property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -116,7 +116,7 @@ test('[Evaluators] Like should throw wenn passed a non existing property.', asyn
     });
 });
 
-test('[Evaluators] Like should throw wenn passed a non string property.', async (t) => {
+test.serial('[Evaluators] Like should throw wenn passed a non string property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -126,7 +126,7 @@ test('[Evaluators] Like should throw wenn passed a non string property.', async 
     });
 });
 
-test('[Evaluators] In should succeed when passed a range including the stored value', async (t) => {
+test.serial('[Evaluators] In should succeed when passed a range including the stored value', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -137,7 +137,7 @@ test('[Evaluators] In should succeed when passed a range including the stored va
     t.not(result, null);
 });
 
-test('[Evaluators] In should fail when passed a range outside the stored value', async (t) => {
+test.serial('[Evaluators] In should fail when passed a range outside the stored value', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -148,7 +148,7 @@ test('[Evaluators] In should fail when passed a range outside the stored value',
     t.is(result, null);
 });
 
-test('[Evaluators] In should throw wenn accessing a non existing property.', async (t) => {
+test.serial('[Evaluators] In should throw wenn accessing a non existing property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -158,7 +158,7 @@ test('[Evaluators] In should throw wenn accessing a non existing property.', asy
     });
 });
 
-test('[Evaluators] Unsafe should not throw wenn accessing a non existing property.', async (t) => {
+test.serial('[Evaluators] Unsafe should not throw wenn accessing a non existing property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
