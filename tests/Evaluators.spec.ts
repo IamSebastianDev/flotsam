@@ -41,7 +41,7 @@ test.serial('[Evaluators] Exactly should not match two not identical values exac
     t.not(result?.data, 'test2');
 });
 
-test.serial('[Evaluators] Exactly should throws wenn accessing a non existing property.', async (t) => {
+test.serial('[Evaluators] Exactly should throws when accessing a non existing property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
