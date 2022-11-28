@@ -11,14 +11,17 @@ import { Queue } from './Queue';
 import type { Document, Rejector, FindOptions } from '../types';
 import { evaluateFindByPropertyOptions, evaluateFindOptions } from './Evaluators/evaluateFindOptions';
 import { FindByProperty } from '../types/FindByProperty';
+import { Crypto } from './Crypto';
 
 export class Collection<T extends Record<string, unknown>> {
     dir: string;
     #files: string[] = [];
     #documents: Map<string, JSONDocument<T>> = new Map();
     #queue: Queue = new Queue();
+    #crypt: Crypto | null = null;
     constructor(private ctx: Flotsam, private namespace: string) {
         this.dir = resolve(ctx.root, this.namespace);
+        this.#crypt = ctx.auth ? new Crypto(ctx.auth) : null;
 
         process.on('SIGINT', async () => {
             await this.serialize();
@@ -96,9 +99,11 @@ export class Collection<T extends Record<string, unknown>> {
                     this.#files = (await readdir(this.dir)).filter((file) => ObjectId.is(file));
 
                     for await (const document of this.#files) {
-                        const doc: T & { _id: string } = JSON.parse(
-                            await readFile(resolve(this.dir, document), 'utf-8')
-                        );
+                        let content = await readFile(resolve(this.dir, document), 'utf-8');
+                        if (this.#crypt) content = this.#crypt.decrypt(content);
+
+                        const doc: T & { _id: string } = JSON.parse(content);
+                        console.log({ content, deserialize: doc });
                         this.#documents.set(ObjectId.from(doc._id).str, new JSONDocument<T>({ _id: document, _: doc }));
                     }
 
@@ -129,7 +134,10 @@ export class Collection<T extends Record<string, unknown>> {
 
                     for await (const [id, document] of [...this.#documents.entries()]) {
                         const path = resolve(this.dir, id);
-                        await writeFile(path, document.toFile(), 'utf-8');
+                        let content = document.toFile();
+                        if (this.#crypt) content = this.#crypt.encrypt(content);
+
+                        await writeFile(path, content, 'utf-8');
                     }
 
                     this.ctx.emit('serialize', this);
@@ -176,9 +184,12 @@ export class Collection<T extends Record<string, unknown>> {
             new Promise(async (res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     const doc = new JSONDocument({ _: data });
-                    const path = resolve(this.dir, doc.id.str);
+                    let content = doc.toFile();
+                    if (this.#crypt) content = this.#crypt.encrypt(content);
 
-                    await writeFile(path, doc.toFile(), 'utf-8');
+                    const path = resolve(this.dir, doc.id.str);
+                    await writeFile(path, content, 'utf-8');
+
                     this.#documents.set(doc.id.str, doc);
 
                     this.ctx.emit('insert', doc.toDoc());
@@ -316,9 +327,9 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const item = [...this.#documents.entries()].find(([, value]) =>
-                        evaluateFindByPropertyOptions(value.toDoc(), findOptions)
-                    );
+                    const item = [...this.#documents.entries()].find(([, value]) => {
+                        evaluateFindByPropertyOptions(value.toDoc(), findOptions);
+                    });
 
                     if (item === undefined) {
                         return res(null);
@@ -351,7 +362,9 @@ export class Collection<T extends Record<string, unknown>> {
 
         const updated = new JSONDocument({ _id: id, _: { ...document.toDoc(), ...data } });
         this.#documents.set(id, updated);
-        await writeFile(resolve(this.dir, id), updated.toFile(), 'utf8');
+        let content = updated.toFile();
+        if (this.#crypt) content = this.#crypt.encrypt(content);
+        await writeFile(resolve(this.dir, id), content, 'utf8');
 
         return res(updated.toDoc());
     }

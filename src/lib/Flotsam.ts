@@ -30,6 +30,8 @@ export class Flotsam {
 
     #collections: Record<string, Collection<any>> = {};
 
+    auth: string | null;
+
     #handlers: Record<FlotsamEvent, Array<Subscriber>> = {
         close: [() => (this.connected = false)],
         delete: [],
@@ -45,6 +47,7 @@ export class Flotsam {
 
     constructor(init: FlotsamInit) {
         this.root = __root(init.root);
+        this.auth = init.auth || null;
         this.connected = false;
     }
 

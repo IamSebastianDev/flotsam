@@ -24,4 +24,13 @@ export type FlotsamInit = {
      * Boolean indicating if logs & warnings should be suppressed.
      */
     quiet?: string;
+
+    /**
+     * @type { string }
+     * @optional
+     * @description
+     * Object containing auth properties to use for encrypting the data stored on disk
+     */
+
+    auth?: string;
 };
