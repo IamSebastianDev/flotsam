@@ -3,7 +3,7 @@
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { __root } from '../utils';
-import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber } from '../types';
+import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler } from '../types';
 import { Collection } from './Collection';
 import { Loq } from './Loq';
 import { Queue } from './Queue';
@@ -64,7 +64,7 @@ export class Flotsam {
         this.createInitialListeners();
     }
 
-    createInitialListeners() {
+    private createInitialListeners() {
         this.on('error', (error) => {
             return this.#queue.enqueue(
                 new Promise((res) => {
@@ -112,11 +112,13 @@ export class Flotsam {
      * const db = new Flotsam({ root: './.store' });
      * await db.connect();
      * ```
+     * @param { Callback | null } [callback] - optional callback that will be executed when the connection is completed.
+     * @param { ErrorHandler } [error] - optional error callback that will be executed when the connection fails.
      *
      * @returns { Promise<boolean> } `true` if the connection is established
      */
 
-    async connect(): Promise<boolean> {
+    async connect(callback?: Callback | null, error?: ErrorHandler): Promise<boolean> {
         return new Promise(async (res, rej) => {
             try {
                 /**
@@ -129,9 +131,11 @@ export class Flotsam {
                 }
 
                 this.emit('connect');
+                if (callback && typeof callback === 'function') callback();
                 res(true);
             } catch (e) {
                 this.emit('error', e);
+                if (error && typeof error === 'function') error(e);
                 rej(e);
             }
         });

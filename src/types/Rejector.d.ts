@@ -1,9 +1,11 @@
 /** @format */
 
+import { ErrorHandler } from './ErrorHandler';
+
 /**
- * @type { Function }
+ * @type { ErrorHandler }
  * @description
  * Function to reject a `Promise`
  */
 
-export type Rejector = (error: unknown) => void;
+export type Rejector = ErrorHandler;
