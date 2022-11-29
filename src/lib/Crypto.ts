@@ -12,7 +12,7 @@ export class Crypto {
 
     encrypt(string: string): string {
         console.log({ string });
-        const vector = randomBytes(16);
+        const vector = randomBytes(this.#vectorLength);
         const cipher = createCipheriv(this.#algorithm, this.key, vector);
         const encrypted = Buffer.concat([cipher.update(string), cipher.final()]);
 
