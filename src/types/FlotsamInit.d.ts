@@ -23,7 +23,7 @@ export type FlotsamInit = {
      * @description
      * Boolean indicating if logs & warnings should be suppressed.
      */
-    quiet?: string;
+    quiet?: boolean;
 
     /**
      * @type { string }
