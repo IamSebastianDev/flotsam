@@ -30,10 +30,15 @@ export class Loq {
         await appendFile(destination, message, 'utf-8');
     }
 
-    error(error: string) {
-        this.writeToFile(`[ERROR]:[${new Date().toUTCString()}] - ${error}\n`);
+    private get timestamp(): string {
+        return new Date().toUTCString().replace(',', ':');
     }
+
+    error(error: string) {
+        this.writeToFile(`[ERROR]:[${this.timestamp}] - ${error}\n`);
+    }
+
     message(content: string) {
-        this.writeToFile(`[INFO]:[${new Date().toUTCString()}] - ${content}\n`);
+        this.writeToFile(`[INFO]:[${this.timestamp}] - ${content}\n`);
     }
 }
