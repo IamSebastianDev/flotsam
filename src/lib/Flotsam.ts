@@ -107,7 +107,7 @@ export class Flotsam {
      * ```
      *
      * @param { string } namespace - the namespace of the collection to retrieve.
-     * @returns { Collection } - the deserialized Collection containing the entries stored
+     * @returns { Collection } the deserialized Collection containing the entries stored
      * previously.
      */
 
