@@ -102,9 +102,11 @@ export class Collection<T extends Record<string, unknown>> {
                         let content = await readFile(resolve(this.dir, document), 'utf-8');
                         if (this.#crypt) content = this.#crypt.decrypt(content);
 
-                        const doc: T & { _id: string } = JSON.parse(content);
-                        console.log({ content, deserialize: doc });
-                        this.#documents.set(ObjectId.from(doc._id).str, new JSONDocument<T>({ _id: document, _: doc }));
+                        const doc: { _: T; _id: string } = JSON.parse(content);
+                        this.#documents.set(
+                            ObjectId.from(doc._id).str,
+                            new JSONDocument<T>({ _id: document, _: doc._ })
+                        );
                     }
 
                     this.ctx.emit('deserialize', this);
@@ -327,9 +329,9 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const item = [...this.#documents.entries()].find(([, value]) => {
-                        evaluateFindByPropertyOptions(value.toDoc(), findOptions);
-                    });
+                    const item = [...this.#documents.entries()].find(([, value]) =>
+                        evaluateFindByPropertyOptions(value.toDoc(), findOptions)
+                    );
 
                     if (item === undefined) {
                         return res(null);
