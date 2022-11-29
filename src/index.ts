@@ -11,6 +11,7 @@ export {
     GreaterThanOrEqual,
     LessThanOrEqual,
     Unsafe,
+    NotEqual,
 } from './lib/Evaluators';
 
 export type { Collection, ObjectId, JSONDocument } from './lib';

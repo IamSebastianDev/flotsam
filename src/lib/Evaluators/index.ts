@@ -8,3 +8,4 @@ export { GreaterThan, GreaterThanOrEqual } from './GreaterThan.evaluator';
 export { LessThan, LessThanOrEqual } from './LessThan.evaluator';
 export { In } from './In.evaluator';
 export { Unsafe } from './Unsafe.evaluator';
+export { NotEqual } from './NotEqual.evaluator';
