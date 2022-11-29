@@ -6,6 +6,7 @@ export class JSONDocument<T extends Record<string, unknown>> {
     data: T;
     #id: ObjectId;
     constructor(data: DocumentInit<T>) {
+        console.log({ data });
         this.#id = data._id ? ObjectId.from(data._id) : new ObjectId();
         delete data._._id;
         this.data = { ...data._ };
@@ -26,7 +27,7 @@ export class JSONDocument<T extends Record<string, unknown>> {
      */
 
     toFile(): string {
-        return JSON.stringify({ _id: this.#id.str, _: this.data._ });
+        return JSON.stringify({ _id: this.#id.str, _: this.data });
     }
 
     /**
