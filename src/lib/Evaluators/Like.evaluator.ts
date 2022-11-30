@@ -14,7 +14,8 @@ import { isNonNull } from '../../utils';
  *
  *@example
  * ```ts
- * import { Flotsam, Like } from "flotsam";
+ * import { Flotsam } from "flotsam";
+ * import { Like } from "flotsam/evaluators";
  *
  * const collection = await db.collect<{ name: string }>('collection')
  *

@@ -14,9 +14,10 @@ import { isNonNull } from '../../utils';
  *
  *@example
  * ```ts
- * import { Flotsam, Exactly } from "flotsam";
+ * import { Flotsam } from "flotsam";
+ * import { Exactly } from "flotsam/evaluators";
  *
- * const collection = await db.collect<{ name: string }>('collection')
+ * const collection = await db.collect<{ name: string }>('collection');
  *
  * // Search for a Document containing a `name` property matching exactly 'flotsam'
  * const result = await collection.findOneBy({name: Exactly('flotsam')});

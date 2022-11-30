@@ -14,9 +14,10 @@ import { isNonNull } from '../../utils';
  *
  *@example
  * ```ts
- * import { Flotsam, NotEqual } from "flotsam";
+ * import { Flotsam } from "flotsam";
+ * import { NotEqual } from "flotsam/evaluators";
  *
- * const collection = await db.collect<{ name: string }>('collection')
+ * const collection = await db.collect<{ name: string }>('collection');
  *
  * // Search for a Document containing a `name` property that does not match 'flotsam'
  * const result = await collection.findOneBy({name: NotEqual('flotsam')});

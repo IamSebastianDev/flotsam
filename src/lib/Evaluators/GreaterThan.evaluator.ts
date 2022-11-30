@@ -14,9 +14,10 @@ import { isNonNull } from '../../utils';
  *
  *@example
  * ```ts
- * import { Flotsam, GreaterThan } from "flotsam";
+ * import { Flotsam } from "flotsam";
+ * import { GreaterThan } from "flotsam/evaluators";
  *
- * const collection = await db.collect<{ age: number }>('collection')
+ * const collection = await db.collect<{ age: number }>('collection');
  *
  * // Search for a Document containing a `age` property greater than 3
  * const result = await collection.findOneBy({age: GreaterThan(3)});
@@ -61,9 +62,10 @@ export const GreaterThan = (condition: number, options: EvaluatorOptions = {}): 
  *
  *@example
  * ```ts
- * import { Flotsam, GreaterThanOrEqual } from "flotsam";
+ * import { Flotsam } from "flotsam";
+ * import { GreaterThanOrEqual } from "flotsam/evaluators";
  *
- * const collection = await db.collect<{ age: number }>('collection')
+ * const collection = await db.collect<{ age: number }>('collection');
  *
  * // Search for a Document containing a `age` property greater or equal to 3
  * const result = await collection.findOneBy({age: GreaterThanOrEqual(3)});
