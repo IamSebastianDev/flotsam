@@ -204,16 +204,15 @@ export class Collection<T extends Record<string, unknown>> {
 
     // @Delete Operations
 
-    private async delete(item: [string, JSONDocument<T>] | undefined, res: (reason: any) => void) {
-        if (item === undefined) {
-            return res(false);
-        }
-
-        this.#documents.delete(item[0]);
-        await rm(resolve(this.#dir, item[0]));
-        this.ctx.emit('delete');
-
-        return res(item[1].toDoc());
+    private async delete(id: string): Promise<boolean> {
+        return this.#queue.enqueue(
+            new Promise(async (res) => {
+                this.#documents.delete(id);
+                await rm(resolve(this.#dir, id));
+                this.ctx.emit('delete');
+                res(true);
+            })
+        );
     }
 
     /**
@@ -233,7 +232,13 @@ export class Collection<T extends Record<string, unknown>> {
                         ObjectId.compare(ObjectId.from(key), ObjectId.from(id))
                     );
 
-                    return await this.delete(item, res);
+                    if (item === undefined) {
+                        return res(false);
+                    }
+
+                    const deleted = await this.delete(item[0]);
+
+                    return res(deleted ? item[1].toDoc() : false);
                 });
             })
         );
@@ -252,11 +257,33 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const item = [...this.#documents.entries()].find(([, value]) =>
-                        evaluateFindOptions(value.toDoc(), findOptions)
-                    );
+                    const items = await this.getEntriesByFindOptions(findOptions);
 
-                    return await this.delete(item, res);
+                    if (items[0] === undefined) {
+                        return res(false);
+                    }
+
+                    const deleted = await this.delete(items[0]._id.str);
+
+                    return res(deleted ? items[0] : false);
+                });
+            })
+        );
+    }
+
+    async deleteMany(findOptions: FindOptions<T>): Promise<Document<T>[] | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const items = await this.getEntriesByFindOptions(findOptions);
+
+                    if (items.length === 0) {
+                        return res(false);
+                    }
+
+                    const deleted = await Promise.all(items.map(async (item) => this.delete(item._id.str)));
+
+                    return res(deleted ? items : false);
                 });
             })
         );
@@ -493,18 +520,13 @@ export class Collection<T extends Record<string, unknown>> {
      * @param { function(result: any): void } res - the method to resolve the outer promise
      */
 
-    private async update(item: [string, JSONDocument<T>] | undefined, data: Partial<T>, res: (result: any) => void) {
-        if (item === undefined) {
-            return res(false);
-        }
+    private async update(document: Document<T>, data: Partial<T>, res: (result: any) => void) {
+        const updated = new JSONDocument({ _id: document._id.str, _: { ...document, ...data } });
+        this.#documents.set(document._id.str, updated);
 
-        const [id, document] = item;
-
-        const updated = new JSONDocument({ _id: id, _: { ...document.toDoc(), ...data } });
-        this.#documents.set(id, updated);
         let content = updated.toFile();
         if (this.#crypt) content = this.#crypt.encrypt(content);
-        await writeFile(resolve(this.#dir, id), content, 'utf8');
+        await writeFile(resolve(this.#dir, document._id.str), content, 'utf8');
 
         return res(updated.toDoc());
     }
@@ -528,7 +550,11 @@ export class Collection<T extends Record<string, unknown>> {
                         ObjectId.compare(ObjectId.from(key), ObjectId.from(id))
                     );
 
-                    return await this.update(item, data, res);
+                    if (item === undefined) {
+                        return res(false);
+                    }
+
+                    return await this.update(item[1].toDoc(), data, res);
                 });
             })
         );
@@ -549,11 +575,13 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const item = [...this.#documents.entries()].find(([, value]) =>
-                        evaluateFindOptions(value.toDoc(), findOptions)
-                    );
+                    const items = await this.getEntriesByFindOptions(findOptions);
 
-                    return await this.update(item, data, res);
+                    if (items.length === 0) {
+                        return res(false);
+                    }
+
+                    return await this.update(items[0], data, res);
                 });
             })
         );
@@ -574,11 +602,12 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const item = [...this.#documents.entries()].find(([, value]) =>
-                        evaluateFindByPropertyOptions(value.toDoc(), findOptions)
-                    );
+                    const items = await this.getEntriesByFindOptions({ where: findOptions });
 
-                    return await this.update(item, data, res);
+                    if (items.length === 0) {
+                        return res(false);
+                    }
+                    return await this.update(items[0], data, res);
                 });
             })
         );
