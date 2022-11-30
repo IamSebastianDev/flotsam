@@ -543,9 +543,10 @@ export class Collection<T extends Record<string, unknown>> {
      * @description
      * Internal method to update a `Document`
      *
-     * @param { [string, JSONDocument] | undefined } item - the found Document to update
+     * @param { Document } document - the found Document to update
      * @param { Partial<any> } data - the data to update the document with
-     * @param { function(result: any): void } res - the method to resolve the outer promise
+     *
+     * @returns { Promise<Document> }
      */
 
     private async update(document: Document<T>, data: Partial<T>): Promise<Document<T>> {
@@ -647,6 +648,24 @@ export class Collection<T extends Record<string, unknown>> {
                     const updated = await this.update(items[0], data);
 
                     return res(updated);
+                });
+            })
+        );
+    }
+
+    async updateMany(findOptions: FindOptions<T>, data: Partial<T>): Promise<Document<T>[] | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const items = await this.getEntriesByFindOptions(findOptions);
+
+                    if (items.length === 0) {
+                        return res(false);
+                    }
+
+                    const updated = await Promise.all(items.map(async (item) => await this.update(item, data)));
+
+                    return res(updated.every(isTruthy) ? updated : false);
                 });
             })
         );
