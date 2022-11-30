@@ -1,5 +1,5 @@
 {
-  "name": "flotsamjs",
+  "name": "flotsam",
   "version": "1.0.0",
   "description": "a lightweight, dependency document based json database",
   "type": "module",
