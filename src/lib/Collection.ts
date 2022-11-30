@@ -9,7 +9,7 @@ import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
 import { Queue } from './Queue';
 import type { Document, Rejector, FindOptions } from '../types';
-import { evaluateFindOptions } from './Evaluators/evaluateFindOptions';
+import { evaluateFindOptions } from './evaluateFindOptions';
 import { FindByProperty } from '../types/FindByProperty';
 import { Crypto } from './Crypto';
 

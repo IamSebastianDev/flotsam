@@ -1,20 +1,6 @@
 /** @format */
 
 export { Flotsam } from './lib';
-export {
-    Like,
-    Is,
-    Exactly,
-    GreaterThan,
-    LessThan,
-    In,
-    GreaterThanOrEqual,
-    LessThanOrEqual,
-    Unsafe,
-    NotEqual,
-    RegExp,
-} from './lib/Evaluators';
-
 export type { Collection, ObjectId, JSONDocument } from './lib';
 export type {
     FlotsamInit,

@@ -6,10 +6,24 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "exports": {
-    "require": "./dist/index.js",
-    "import": "./dist/index.mjs"
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./evaluators": {
+      "import": "./dist/evaluators/index.mjs",
+      "require": "./dist/evaluators/index.js",
+      "types": "./dist/types/evaluators.d.ts"
+    }
   },
   "types": "dist/types/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": ["dist/types/index.d.ts"],
+      "evaluators": ["dist/types/evaluators.d.ts"]
+    }
+  },
   "author": "Sebastian Heinz",
   "license": "MIT",
   "repository": "https://github.com/IamSebastianDev/flotsam",
