@@ -12,6 +12,7 @@ export {
     LessThanOrEqual,
     Unsafe,
     NotEqual,
+    RegExp,
 } from './lib/Evaluators';
 
 export type { Collection, ObjectId, JSONDocument } from './lib';
