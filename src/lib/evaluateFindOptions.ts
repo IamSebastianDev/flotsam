@@ -1,8 +1,8 @@
 /** @format */
 
 import { type } from 'os';
-import { FindOptions, Document } from '../../types';
-import { FindByProperty } from '../../types/FindByProperty';
+import { FindOptions, Document } from '../types';
+import { FindByProperty } from '../types/FindByProperty';
 
 /**
  * @description
