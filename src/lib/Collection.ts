@@ -323,13 +323,25 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
-     * Method to select the first found `Document` by a given set of find options. Returns the found `Document`
-     * or null, if no `Document` was found.
+     * Collection method to select the first `Document` according to the given find options.
      *
-     * @param { FindOptions } findOptions - the find options to the find the `Document` by.
-     * @returns { Promise<Document | null> } the selected `Document` or null, if no `Document` was found.
+     * -----
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for the first Document containing a `name` property including 'flotsam'
+     * const result = await collection.findOne({ where: {name: Like('flotsam') }});
+     * ```
+     * ---
+     *
+     * @param { FindOptions } findOptions - the given FindOptions to select `Documents` by.
+     * @returns { Promise<Document[]> } an Array of Documents.
      */
-
     async findOne(findOptions: FindOptions<T>): Promise<Document<T> | null> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
@@ -348,13 +360,25 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
-     * Method to select the first found `Document` by a given set of find by property options.
-     * Returns the found `Document` or null, if no `Document` was found.
+     * Collection method to select the first `Document` according to the given simplified find by property options.
      *
-     * @param { FindByProperty } findOptions - the find options to the find the `Document` by.
-     * @returns { Promise<Document | null> } the selected `Document` or null, if no `Document` was found.
+     * -----
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for the first Document containing a `name` property including 'flotsam'
+     * const result = await collection.findOneBy({name: Like('flotsam')});
+     * ```
+     * ---
+     *
+     * @param { FindByProperty } findOptions - the given simplified FindByProperty options to select `Documents` by.
+     * @returns { Promise<Document> } an Array of Documents.
      */
-
     async findOneBy(findOptions: FindByProperty<T>): Promise<Document<T> | null> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
