@@ -1,6 +1,6 @@
 /** @format */
 
-import { __root, safeAsyncAbort } from '../utils';
+import { __root, safeAsyncAbort, isTruthy, sortByProperty } from '../utils';
 import { Flotsam } from './Flotsam';
 import { readdir, mkdir, rm, stat, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -12,7 +12,6 @@ import type { Document, Rejector, FindOptions } from '../types';
 import { evaluateFindByPropertyOptions, evaluateFindOptions } from './Evaluators/evaluateFindOptions';
 import { FindByProperty } from '../types/FindByProperty';
 import { Crypto } from './Crypto';
-import { sortByProperty } from '../utils/sortByProperty.util';
 
 export class Collection<T extends Record<string, unknown>> {
     #dir: string;
@@ -174,6 +173,24 @@ export class Collection<T extends Record<string, unknown>> {
 
     //@Insert Operations
 
+    private async insert(document: JSONDocument<T>) {
+        return this.#queue.enqueue(
+            new Promise(async (res, rej) => {
+                let content = document.toFile();
+                if (this.#crypt) content = this.#crypt.encrypt(content);
+
+                const path = resolve(this.#dir, document.id.str);
+                await writeFile(path, content, 'utf-8');
+
+                this.#documents.set(document.id.str, document);
+
+                this.ctx.emit('insert', document.toDoc());
+
+                return res(true);
+            })
+        );
+    }
+
     /**
      * @description
      * Inserts a `Document` into the database.
@@ -182,21 +199,31 @@ export class Collection<T extends Record<string, unknown>> {
      * @returns { Promise<Document> } the created Document
      */
 
-    async insertOne(data: T): Promise<Document<T>> {
+    async insertOne(data: T): Promise<Document<T> | false> {
         return this.#queue.enqueue(
-            new Promise(async (res, rej) => {
+            new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     const doc = new JSONDocument({ _: data });
-                    let content = doc.toFile();
-                    if (this.#crypt) content = this.#crypt.encrypt(content);
+                    const inserted = await this.insert(doc);
 
-                    const path = resolve(this.#dir, doc.id.str);
-                    await writeFile(path, content, 'utf-8');
+                    res(inserted ? doc.toDoc() : false);
+                });
+            })
+        );
+    }
 
-                    this.#documents.set(doc.id.str, doc);
+    async insertMany(...data: T[]): Promise<Document<T>[] | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const docs = data.map((doc) => new JSONDocument({ _: doc }));
+                    const success = await Promise.all(
+                        docs.map(async (doc) => {
+                            return await this.insert(doc);
+                        })
+                    );
 
-                    this.ctx.emit('insert', doc.toDoc());
-                    res(doc.toDoc());
+                    res(success.every(isTruthy) ? docs.map((doc) => doc.toDoc()) : false);
                 });
             })
         );
@@ -283,7 +310,7 @@ export class Collection<T extends Record<string, unknown>> {
 
                     const deleted = await Promise.all(items.map(async (item) => this.delete(item._id.str)));
 
-                    return res(deleted ? items : false);
+                    return res(deleted.every(isTruthy) ? items : false);
                 });
             })
         );
