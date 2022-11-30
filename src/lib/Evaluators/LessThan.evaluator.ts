@@ -14,8 +14,7 @@ import { isNonNull } from '../../utils';
  *
  *@example
  * ```ts
- * import { Flotsam } from "flotsam";
- * import { LessThan } from "flotsam/evaluator"
+ * import { Flotsam, LessThan} from "flotsam";
  *
  * const collection = await db.collect<{ age: number }>('collection')
  *
@@ -62,8 +61,7 @@ export const LessThan = (condition: number, options: EvaluatorOptions = {}): Eva
  *
  *@example
  * ```ts
- * import { Flotsam } from "flotsam";
- * import { LessThanOrEqual } from "flotsam/evaluator"
+ * import { Flotsam, LessThanOrEqual } from "flotsam";
  *
  * const collection = await db.collect<{ age: number }>('collection')
  *
