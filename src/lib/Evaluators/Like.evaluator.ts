@@ -1,20 +1,43 @@
 /** @format */
 
-import { EvaluatorFunction } from '../../types';
+import { EvaluatorFunction, EvaluatorOptions } from '../../types';
 import { isNonNull } from '../../utils';
 
 /**
  * @description
- * Method to check if a given value is a substring of the value of the checked property. The method ignores case and
- * will throw an error if a type mismatch is found.
+ * Evaluator Function to compare a given string for being included in a stored string. `Like` will ignore case.
+ * The second parameter is an optional object that can set the function to be
+ * strict. In strict mode, null or undefined will throw an error instead of evaluating to false, if null is not
+ * the given search value.
  *
- * @param { string } condition - the value to check for being included
+ * -----
+ *
+ *@example
+ * ```ts
+ * import { Flotsam } from "flotsam";
+ * import { Like } from "flotsam/evaluator"
+ *
+ * const collection = await db.collect<{ name: string }>('collection')
+ *
+ * // Search for a Document containing a `name` property including 'flotsam'
+ * const result = await collection.findOneBy({name: Like('flotsam')});
+ *
+ * // Perform the same search, but throw an error when encountering a null or undefined value
+ * const result = await collection.findOneBy({name: Like('flotsam', { strict: true })});
+ * ```
+ *
+ * ---
+ *
+ * @param { string } condition - the value to check for exact equality
+ * @param { EvaluatorOptions } [options] - optional object containing properties to configure the Evaluator
  * @returns { EvaluatorFunction }
  */
 
-export const Like = (condition: string): EvaluatorFunction => {
+export const Like = (condition: string, options: EvaluatorOptions = {}): EvaluatorFunction => {
+    const { strict } = options;
     return (value: unknown, propName?: string) => {
-        if (!isNonNull(value)) {
+        if (!isNonNull(value) && isNonNull(condition)) {
+            if (!strict) return false;
             throw new TypeError(`[Query] Property ${propName} is null or undefined.`);
         }
 

@@ -33,8 +33,8 @@ import { isNonNull } from '../../utils';
  * @returns { EvaluatorFunction }
  */
 
-export const Exactly = (condition: any, options?: EvaluatorOptions): EvaluatorFunction => {
-    const { strict } = options || {};
+export const Exactly = (condition: any, options: EvaluatorOptions = {}): EvaluatorFunction => {
+    const { strict } = options;
     return (value: unknown, propName?: string) => {
         if (!isNonNull(value) && isNonNull(condition)) {
             if (!strict) return false;
