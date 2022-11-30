@@ -9,3 +9,6 @@ export type { Document } from './Document';
 export type { Rejector } from './Rejector';
 export type { FindOptions } from './FindOptions';
 export type { EvaluatorFunction } from './EvaluatorFunction';
+export type { Callback } from './Callback';
+export type { ErrorHandler } from './ErrorHandler';
+export type { EvaluatorOptions } from './EvaluatorOptions';

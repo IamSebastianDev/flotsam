@@ -1,10 +1,12 @@
 /** @format */
 
-import { mkdir, readdir, rmdir, stat } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { __root } from '../utils';
-import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber } from '../types';
+import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler } from '../types';
 import { Collection } from './Collection';
+import { Loq } from './Loq';
+import { Queue } from './Queue';
 
 export class Flotsam {
     /**
@@ -19,7 +21,7 @@ export class Flotsam {
      * @description
      * Boolean indicating if the database has been connected successfully.
      */
-    connected: boolean;
+    connected: boolean = false;
 
     /**
      * @type { Record<string, Collection<any>> }
@@ -30,15 +32,23 @@ export class Flotsam {
 
     #collections: Record<string, Collection<any>> = {};
 
-    auth: string | null;
+    auth?: string;
+
+    quiet?: boolean = true;
+
+    log?: string;
+
+    #loq: Loq = new Loq(this);
+
+    #queue: Queue = new Queue();
 
     #handlers: Record<FlotsamEvent, Array<Subscriber>> = {
-        close: [() => (this.connected = false)],
+        close: [],
         delete: [],
         deserialize: [],
         drop: [],
         insert: [],
-        connect: [() => (this.connected = true)],
+        connect: [],
         serialize: [],
         update: [],
         upsert: [],
@@ -47,8 +57,47 @@ export class Flotsam {
 
     constructor(init: FlotsamInit) {
         this.root = __root(init.root);
-        this.auth = init.auth || null;
-        this.connected = false;
+        this.auth = init.auth;
+        this.quiet = init.quiet;
+        this.log = init.log;
+
+        this.createInitialListeners();
+    }
+
+    private createInitialListeners() {
+        this.on('error', (error) => {
+            return this.#queue.enqueue(
+                new Promise((res) => {
+                    return res(this.#loq.error(error));
+                })
+            );
+        });
+
+        this.on('connect', () => {
+            return this.#queue.enqueue(
+                new Promise((res) => {
+                    return res(this.#loq.message('[Flotsam] Connected'));
+                })
+            );
+        });
+
+        this.on('connect', () => {
+            this.connected = true;
+            !this.quiet && console.log(`🐙 \x1b[34m[Flotsam] DB Connected.\x1b[0m`);
+        });
+
+        this.on('close', () => {
+            return this.#queue.enqueue(
+                new Promise((res) => {
+                    return res(this.#loq.message('[Flotsam] Closed'));
+                })
+            );
+        });
+
+        this.on('close', () => {
+            this.connected = false;
+            !this.quiet && console.log(`🪢  \x1b[34m[Flotsam] DB Closed.\x1b[0m`);
+        });
     }
 
     /**
@@ -63,11 +112,13 @@ export class Flotsam {
      * const db = new Flotsam({ root: './.store' });
      * await db.connect();
      * ```
+     * @param { Callback | null } [callback] - optional callback that will be executed when the connection is completed.
+     * @param { ErrorHandler } [error] - optional error callback that will be executed when the connection fails.
      *
      * @returns { Promise<boolean> } `true` if the connection is established
      */
 
-    async connect(): Promise<boolean> {
+    async connect(callback?: Callback | null, error?: ErrorHandler): Promise<boolean> {
         return new Promise(async (res, rej) => {
             try {
                 /**
@@ -80,9 +131,11 @@ export class Flotsam {
                 }
 
                 this.emit('connect');
+                if (callback && typeof callback === 'function') callback();
                 res(true);
             } catch (e) {
                 this.emit('error', e);
+                if (error && typeof error === 'function') error(e);
                 rej(e);
             }
         });
@@ -107,7 +160,7 @@ export class Flotsam {
      * ```
      *
      * @param { string } namespace - the namespace of the collection to retrieve.
-     * @returns { Collection } - the deserialized Collection containing the entries stored
+     * @returns { Collection } the deserialized Collection containing the entries stored
      * previously.
      */
 

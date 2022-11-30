@@ -7,7 +7,7 @@ import { Flotsam, Exactly, Is, Like, In, Unsafe } from '../src';
 // a Collection and a Document
 
 test.beforeEach(async (t) => {
-    const db = new Flotsam({ root: './tests/.store' });
+    const db = new Flotsam({ root: './tests/.store', quiet: true });
     await db.connect();
     const test = await db.collect<{ data: string; number: number }>('test');
     await test.insertOne({ data: 'test', number: 2 });
@@ -47,7 +47,28 @@ test.serial('[Evaluators] Exactly should throws when accessing a non existing pr
 
     await t.throwsAsync(async () => {
         ///@ts-ignore
+        await test.findOne({ where: { data2: Exactly('test2', { strict: true }) } });
+    });
+});
+
+test.serial('[Evaluators] Exactly should not throw wenn accessing a non existing property.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    await t.notThrowsAsync(async () => {
+        ///@ts-ignore
         await test.findOne({ where: { data2: Exactly('test2') } });
+    });
+});
+
+test.serial('[Evaluators] Exactly should compare null values.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string | null; number?: number }>('test');
+    await test.insertOne({ data: null });
+
+    await t.notThrowsAsync(async () => {
+        let result = await test.findOne({ where: { data: Exactly(null) } });
+        t.is(result?.data, null);
     });
 });
 

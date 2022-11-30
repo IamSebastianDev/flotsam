@@ -3,11 +3,12 @@ import { DocumentInit, Document } from '../types';
 import { ObjectId } from './ObjectId';
 
 export class JSONDocument<T extends Record<string, unknown>> {
+    data: T;
     #id: ObjectId;
-    constructor(private data: DocumentInit<T>) {
-        this.#id = this.data._id ? ObjectId.from(this.data._id) : new ObjectId();
-        delete this.data._._id;
-        console.log({ document: this });
+    constructor(data: DocumentInit<T>) {
+        this.#id = data._id ? ObjectId.from(data._id) : new ObjectId();
+        delete data._._id;
+        this.data = { ...data._ };
     }
 
     get id() {
@@ -25,7 +26,7 @@ export class JSONDocument<T extends Record<string, unknown>> {
      */
 
     toFile(): string {
-        return JSON.stringify({ _id: this.#id.str, _: this.data._ });
+        return JSON.stringify({ _id: this.#id.str, _: this.data });
     }
 
     /**
@@ -39,6 +40,6 @@ export class JSONDocument<T extends Record<string, unknown>> {
      */
 
     toDoc(): Document<T> {
-        return { ...this.data._, _id: this.#id };
+        return { ...this.data, _id: this.#id };
     }
 }
