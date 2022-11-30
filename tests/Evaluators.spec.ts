@@ -23,6 +23,10 @@ test.afterEach(async (t) => {
     await db.close();
 });
 
+/**
+ * Exactly
+ */
+
 test.serial('[Evaluators] Exactly should match two identical values exactly', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
@@ -41,7 +45,7 @@ test.serial('[Evaluators] Exactly should not match two not identical values exac
     t.not(result?.data, 'test2');
 });
 
-test.serial('[Evaluators] Exactly should throws when accessing a non existing property.', async (t) => {
+test.serial('[Evaluators] Exactly should throws when accessing a non existing property in strict mode.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -72,11 +76,15 @@ test.serial('[Evaluators] Exactly should compare null values.', async (t) => {
     });
 });
 
+/**
+ * Is
+ */
+
 test.serial('[Evaluators] Is should match two identical values loosely', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
-    const result = await test.findOne({ where: { data: Is('test') } });
+    const result = await test.findOne({ where: { number: Is('2') } });
     t.not(result, null);
     t.is(result?.data, 'test');
 });
@@ -85,29 +93,37 @@ test.serial('[Evaluators] Is should not match two not identical values loosely',
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
-    const result = await test.findOne({ where: { data: Is('test2') } });
+    const result = await test.findOne({ where: { number: Is('test2') } });
     t.is(result, null);
     t.not(result?.data, 'test2');
 });
 
-test.serial('[Evaluators] Is should throw wenn accessing a non existing property.', async (t) => {
+test.serial('[Evaluators] Is should throw when accessing a non existing property in strict mode.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
     await t.throwsAsync(async () => {
         ///@ts-ignore
-        await test.findOne({ where: { data2: Is('test2') } });
+        await test.findOne({ where: { data2: Is('test2', { strict: true }) } });
     });
 });
 
-test.serial('[Evaluators] Is should match a property loosely.', async (t) => {
-    const db = (t.context as Record<string, unknown>).db as Flotsam;
-    const test = await db.collect<{ data: string; number: number }>('test');
+test.serial(
+    '[Evaluators] Is should not throw when accessing a non existing property not in strict mode.',
+    async (t) => {
+        const db = (t.context as Record<string, unknown>).db as Flotsam;
+        const test = await db.collect<{ data: string; number: number }>('test');
 
-    const result = await test.findOne({ where: { number: Is('2') } });
-    t.not(result, null);
-    t.is(result?.number, 2);
-});
+        await t.notThrowsAsync(async () => {
+            ///@ts-ignore
+            await test.findOne({ where: { data2: Is('test2') } });
+        });
+    }
+);
+
+/**
+ * Like
+ */
 
 test.serial('[Evaluators] Like should compare and match two values that intersect', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
@@ -127,11 +143,21 @@ test.serial('[Evaluators] Like should compare and not match two values that do n
     t.not(result?.data, 'abc');
 });
 
-test.serial('[Evaluators] Like should throw wenn passed a non existing property.', async (t) => {
+test.serial('[Evaluators] Like should throw wenn passed a non existing property in strict mode.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
     await t.throwsAsync(async () => {
+        ///@ts-ignore
+        await test.findOne({ where: { data2: Like('test2', { strict: true }) } });
+    });
+});
+
+test.serial('[Evaluators] Like should not throw wenn passed a non existing property not in strict mode.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    await t.notThrowsAsync(async () => {
         ///@ts-ignore
         await test.findOne({ where: { data2: Like('test2') } });
     });
@@ -143,18 +169,19 @@ test.serial('[Evaluators] Like should throw wenn passed a non string property.',
 
     await t.throwsAsync(async () => {
         ///@ts-ignore
-        await test.findOne({ where: { data2: Like(0) } });
+        await test.findOne({ where: { data: Like(0) } });
     });
 });
+
+/**
+ * In
+ */
 
 test.serial('[Evaluators] In should succeed when passed a range including the stored value', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
-    let result = await test.findOne({ where: { number: In(0, 1, 2, 3) } });
-    t.not(result, null);
-
-    result = await test.findOne({ where: { number: In([0, 1, 2, 3]) } });
+    let result = await test.findOne({ where: { number: In([0, 1, 2, 3]) } });
     t.not(result, null);
 });
 
@@ -164,20 +191,34 @@ test.serial('[Evaluators] In should fail when passed a range outside the stored 
 
     let result = await test.findOne({ where: { number: In([0, 1, 3]) } });
     t.is(result, null);
-
-    result = await test.findOne({ where: { number: In(0, 1, 3) } });
-    t.is(result, null);
 });
 
-test.serial('[Evaluators] In should throw wenn accessing a non existing property.', async (t) => {
+test.serial('[Evaluators] In should throw wenn accessing a non existing property in strict mode.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
     await t.throwsAsync(async () => {
         ///@ts-ignore
-        await test.findOne({ where: { data2: In('test2') } });
+        await test.findOne({ where: { data2: In('test2', { strict: true }) } });
     });
 });
+
+test.serial(
+    '[Evaluators] In should not throw wenn accessing a non existing property not in strict mode.',
+    async (t) => {
+        const db = (t.context as Record<string, unknown>).db as Flotsam;
+        const test = await db.collect<{ data: string; number: number }>('test');
+
+        await t.notThrowsAsync(async () => {
+            ///@ts-ignore
+            await test.findOne({ where: { data2: In('test2') } });
+        });
+    }
+);
+
+/**
+ * Unsafe
+ */
 
 test.serial('[Evaluators] Unsafe should not throw wenn accessing a non existing property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
@@ -188,3 +229,27 @@ test.serial('[Evaluators] Unsafe should not throw wenn accessing a non existing 
         await test.findOne({ where: { data2: Unsafe(In('test2')) } });
     });
 });
+
+/**
+ * RegExp
+ */
+
+/**
+ * NotEqual
+ */
+
+/**
+ * GreaterThan
+ */
+
+/**
+ * GreaterThanOrEqual
+ */
+
+/**
+ * LessThan
+ */
+
+/**
+ * LessThanOrEqual
+ */
