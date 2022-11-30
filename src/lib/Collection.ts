@@ -433,6 +433,7 @@ export class Collection<T extends Record<string, unknown>> {
      * @param { FindByProperty } findOptions - the given simplified FindByProperty options to select `Documents` by.
      * @returns { Promise<Document> } an Array of Documents.
      */
+
     async findOneBy(findOptions: FindByProperty<T>): Promise<Document<T> | null> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
@@ -547,18 +548,22 @@ export class Collection<T extends Record<string, unknown>> {
      * @param { function(result: any): void } res - the method to resolve the outer promise
      */
 
-    private async update(document: Document<T>, data: Partial<T>, res: (result: any) => void) {
-        const updated = new JSONDocument({ _id: document._id.str, _: { ...document, ...data } });
-        this.#documents.set(document._id.str, updated);
+    private async update(document: Document<T>, data: Partial<T>): Promise<Document<T>> {
+        return this.#queue.enqueue(
+            new Promise(async (res, rej) => {
+                const updated = new JSONDocument({ _id: document._id.str, _: { ...document, ...data } });
+                this.#documents.set(document._id.str, updated);
 
-        let content = updated.toFile();
-        if (this.#crypt) content = this.#crypt.encrypt(content);
-        await writeFile(resolve(this.#dir, document._id.str), content, 'utf8');
+                let content = updated.toFile();
+                if (this.#crypt) content = this.#crypt.encrypt(content);
+                await writeFile(resolve(this.#dir, document._id.str), content, 'utf8');
 
-        return res(updated.toDoc());
+                return res(updated.toDoc());
+            })
+        );
     }
 
-    /** //@UpdateOneById
+    /**
      * @description
      * Method to select the first `Document` from the collection that satisfies it's id
      * and update it with the given data.
@@ -581,13 +586,15 @@ export class Collection<T extends Record<string, unknown>> {
                         return res(false);
                     }
 
-                    return await this.update(item[1].toDoc(), data, res);
+                    const updated = await this.update(item[1].toDoc(), data);
+
+                    return res(updated);
                 });
             })
         );
     }
 
-    /** //@UpdateOne
+    /**
      * @description
      * Method to select the first `Document` from the collection that satisfies a given set
      * of find options and update it with the given data.
@@ -608,13 +615,15 @@ export class Collection<T extends Record<string, unknown>> {
                         return res(false);
                     }
 
-                    return await this.update(items[0], data, res);
+                    const updated = await this.update(items[0], data);
+
+                    return res(updated);
                 });
             })
         );
     }
 
-    /** //@UpdateOne
+    /**
      * @description
      * Method to select the first `Document` from the collection that satisfies a given set
      * of find simplified options and update it with the given data.
@@ -634,7 +643,10 @@ export class Collection<T extends Record<string, unknown>> {
                     if (items.length === 0) {
                         return res(false);
                     }
-                    return await this.update(items[0], data, res);
+
+                    const updated = await this.update(items[0], data);
+
+                    return res(updated);
                 });
             })
         );
