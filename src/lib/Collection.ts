@@ -12,6 +12,7 @@ import type { Document, Rejector, FindOptions } from '../types';
 import { evaluateFindByPropertyOptions, evaluateFindOptions } from './Evaluators/evaluateFindOptions';
 import { FindByProperty } from '../types/FindByProperty';
 import { Crypto } from './Crypto';
+import { sortByProperty } from '../utils/sortByProperty.util';
 
 export class Collection<T extends Record<string, unknown>> {
     #dir: string;
@@ -173,7 +174,7 @@ export class Collection<T extends Record<string, unknown>> {
 
     //@Insert Operations
 
-    /** // @InsertOne
+    /**
      * @description
      * Inserts a `Document` into the database.
      *
@@ -215,7 +216,7 @@ export class Collection<T extends Record<string, unknown>> {
         return res(item[1].toDoc());
     }
 
-    /** //@DeleteOneById
+    /**
      * @description
      * Method to delete the first found `Document` by a given id. Returns the deleted `Document`
      * or false, if no `Document` was found.
@@ -238,7 +239,7 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
-    /** //@DeleteOne
+    /**
      * @description
      * Method to delete the first found `Document` by a given set of find options. Returns the deleted `Document`
      * or false, if no `Document` was found.
@@ -263,7 +264,38 @@ export class Collection<T extends Record<string, unknown>> {
 
     //@Find Operations
 
-    /** //@FindOneById
+    private async getEntriesByFindOptions(findOptions: FindOptions<T>): Promise<Document<T>[]> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    let items = [...this.#documents.entries()]
+                        .filter(([, value]) => evaluateFindOptions(value.toDoc(), findOptions))
+                        .map(([, doc]) => doc.toDoc());
+
+                    if (findOptions.order) {
+                        const { by, property } = findOptions.order;
+                        if (by && property) items.sort(sortByProperty(property, by));
+                    }
+
+                    if (findOptions.skip) {
+                        items = items.slice(findOptions.skip, -1);
+                    }
+
+                    if (findOptions.take) {
+                        items.length = findOptions.take;
+                    }
+
+                    if (findOptions.limit && items.length > findOptions.limit) {
+                        items.length = findOptions.limit;
+                    }
+
+                    res(items);
+                });
+            })
+        );
+    }
+
+    /**
      * @description
      * Method to select the first `Document` from the collection that satisfies it's id.
      *
@@ -289,7 +321,7 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
-    /** //@FindOne
+    /**
      * @description
      * Method to select the first found `Document` by a given set of find options. Returns the found `Document`
      * or null, if no `Document` was found.
@@ -302,21 +334,19 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const item = [...this.#documents.entries()].find(([, value]) =>
-                        evaluateFindOptions(value.toDoc(), findOptions)
-                    );
+                    const item = await this.getEntriesByFindOptions(findOptions);
 
-                    if (item === undefined) {
+                    if (item[0] === undefined) {
                         return res(null);
                     }
 
-                    return res(item[1].toDoc());
+                    return res(item[0]);
                 });
             })
         );
     }
 
-    /** //@FindOneBy
+    /**
      * @description
      * Method to select the first found `Document` by a given set of find by property options.
      * Returns the found `Document` or null, if no `Document` was found.
@@ -329,15 +359,99 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const item = [...this.#documents.entries()].find(([, value]) =>
-                        evaluateFindByPropertyOptions(value.toDoc(), findOptions)
-                    );
+                    const item = await this.getEntriesByFindOptions({ where: findOptions });
 
-                    if (item === undefined) {
+                    if (item[0] === undefined) {
                         return res(null);
                     }
 
-                    return res(item[1].toDoc());
+                    return res(item[0]);
+                });
+            })
+        );
+    }
+
+    /**
+     * @description
+     * Collection method to select a number of `Documents` according to the given find options.
+     *
+     * -----
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for any number of Documents containing a `name` property including 'flotsam'
+     * const result = await collection.findMany({ where: {name: Like('flotsam') }});
+     * ```
+     *
+     * Results can be ordered by any property present in the `Document`.
+     *
+     * ```ts
+     * // Perform the same search, but order the `Documents` by their first character.
+     * const result = await collection.findMany({ where : { name: Like('flotsam') }, order: { by: 'name', order: 'ASC' }})
+     *```
+     *
+     * Results can also be paginated, by skipping and taking. Skip and take can both be used independent of each other.
+     *
+     * ```ts
+     * // Perform the same search, but skip the first ten `Documents` found, and only take ten results
+     * const result = await collection.findMany({ where: { name: Like('flotsam') }, skip: 10, take: 10 })
+     * ```
+     *
+     * Results can be limited. Any limit will be applied after taking and skipping.
+     *
+     * ```ts
+     * // Perform the same search, but return only 100 `Documents`, if found more.
+     * const result = await collection.findMany({ where: { name: Like('flotsam') }, limit: 100 })
+     * ```
+     * ---
+     *
+     * @param { FindOptions } findOptions - the given FindOptions to select `Documents` by.
+     * @returns { Promise<Document[]> } an Array of Documents.
+     */
+
+    async findMany(findOptions: FindOptions<T>): Promise<Document<T>[]> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    return res(await this.getEntriesByFindOptions(findOptions));
+                });
+            })
+        );
+    }
+
+    /**
+     * @description
+     * Collection method to select a number of `Documents` according to the given simplified find by property options.
+     * The `findManyBy` method does not support ordering, taking, skipping or limiting the results.
+     *
+     * -----
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for any number of Documents containing a `name` property including 'flotsam'
+     * const result = await collection.findManyBy({name: Like('flotsam')});
+     * ```
+     * ---
+     *
+     * @param { FindByProperty } findOptions - the given simplified FindByProperty options to select `Documents` by.
+     * @returns { Promise<Document[]> } an Array of Documents.
+     */
+
+    async findManyBy(findOptions: FindByProperty<T>): Promise<Document<T>[]> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    return res(await this.getEntriesByFindOptions({ where: findOptions }));
                 });
             })
         );

@@ -6,9 +6,10 @@ import { FindByProperty } from './FindByProperty';
 export type FindOptions<T> = {
     where: FindByProperty<Partial<T>> | FindByProperty<Partial<T>>[];
     order?: {
-        property: string;
+        property: keyof T | '_id';
         by: 'ASC' | 'DESC';
     };
     skip?: number;
     take?: number;
+    limit?: number;
 };
