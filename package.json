@@ -20,8 +20,12 @@
   "types": "dist/types/index.d.ts",
   "typesVersions": {
     "*": {
-      "*": ["dist/types/index.d.ts"],
-      "evaluators": ["dist/types/evaluators.d.ts"]
+      "*": [
+        "dist/types/index.d.ts"
+      ],
+      "evaluators": [
+        "dist/types/evaluators.d.ts"
+      ]
     }
   },
   "author": "Sebastian Heinz",
@@ -58,13 +62,13 @@
     "test": "ava"
   },
   "ava": {
-		"extensions": {
-			"ts": "module"
-		},
-		"nodeArguments": [
+    "extensions": {
+      "ts": "module"
+    },
+    "nodeArguments": [
       "--no-warnings",
-			"--loader=ts-node/esm",
-			"--experimental-specifier-resolution=node"
-		]
-	}
+      "--loader=ts-node/esm",
+      "--experimental-specifier-resolution=node"
+    ]
+  }
 }
