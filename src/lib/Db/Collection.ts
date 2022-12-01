@@ -12,6 +12,60 @@ import type { Document, Rejector, FindOptions, FindByProperty } from '../../type
 import { evaluateFindOptions } from './evaluateFindOptions';
 import { Crypto } from './Crypto';
 
+/**
+ * @Class
+ * The `Collection` class is used to interface between a `Fløtsam` instance and it's `Documents`.
+ * A `Collection` is created when executing the `collect()` method on a `Fløtsam` instance with a given namespace.
+ * As a namespace is directly tied to it's physical counterpart, instancing a existing `Collection` via
+ * the `collect()` method will return the cached `Collection`.
+ *
+ * ```ts
+ * const collection = await db.collect('<namespace>')
+ *
+ * // any collection will accept a generic as argument,
+ * // enabling strict type checks in subsequent methods
+ * const users = await db.collect<{ name: string }>('users')
+ * ```
+ *
+ * The created `Collection` is used to insert, find, update and delete `Documents`, that are contained
+ * within the `Collection`. There are different methods available for each operation.
+ *
+ * - Inserting a `Document`
+ *
+ * ```ts
+ * const doc = await users.insertOne({name: 'Flotsam'})
+ * // logs { name: 'Flotsam', _id: ObjectId }
+ * ```
+ *
+ * > Note: If a `Document` is inserted instead of a Data Object, the Document is upserted if it exists
+ *
+ * - Finding a `Document`
+ *
+ * ```ts
+ * const doc = await users.findOneBy({ name: 'Flotsam' });
+ * // logs { name: 'Flotsam', _id: ObjectId }
+ * ```
+ *
+ * - Updating a `Document`
+ *
+ * ```ts
+ * const doc = await users.updateOne({ where: { name: 'Flotsam' } }, { name: 'Jetsam' });
+ * // logs { name: 'Jetsam', _id: ObjectId }
+ * ```
+ *
+ * - Deleting a `Document`
+ *
+ * ```ts
+ * let doc = await users.deleteOne({ where: { name: 'Flotsam' }})
+ * // logs false
+ * doc = await users.deleteOne({where: { name: 'Jetsam' }})
+ * // logs { name: 'Jetsam', _id: ObjectId }
+ * ```
+ *
+ * A `Collection` should not be instanced directly. If a `Collection` instance is
+ * created, a `Flotsam` instance needs to be passed as well as the namespace.
+ */
+
 export class Collection<T extends Record<string, unknown>> {
     #dir: string;
     #files: string[] = [];
