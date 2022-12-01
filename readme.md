@@ -36,7 +36,7 @@ const db = new Flotsam({
 await db.connect();
 
 // create a collection
-const collection = await db.collect<{ label: string; data: number }>('collection_name');
+const collection = await db.collect<{ label: string, data: number }>('collection_name');
 
 // insert a document into the collection
 
