@@ -14,8 +14,8 @@ import { isNonNull } from '../../utils';
  *
  *@example
  * ```ts
- * import { Flotsam } from "flotsam";
- * import { In } from "flotsam";
+ * import { Flotsam } from "flotsam/db";
+ * import { In } from "flotsam/evaluators";
  * const collection = await db.collect<{ age: number }>('collection')
  *
  * // Search for a Document containing a `age` property that is either 1, 2 or 3

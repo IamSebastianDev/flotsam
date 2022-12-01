@@ -14,7 +14,7 @@ import { isNonNull } from '../../utils';
  *
  *@example
  * ```ts
- * import { Flotsam } from "flotsam";
+ * import { Flotsam } from "flotsam/db";
  * import { Is } from "flotsam/evaluators";
  *
  * const collection = await db.collect<{ age: number }>('collection')
