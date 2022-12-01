@@ -1,6 +1,7 @@
 /** @format */
 
 /**
+ * @utility
  * @description
  * Utility function to check if a value is neither `null` nor `undefined`.
  *
