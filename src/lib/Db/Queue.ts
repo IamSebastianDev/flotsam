@@ -1,6 +1,6 @@
 /** @format */
 
-import type { QueueTask } from '../types';
+import type { QueueTask } from '../../types';
 
 export class Queue {
     #queue: Array<QueueTask> = [];

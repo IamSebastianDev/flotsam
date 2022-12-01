@@ -2,8 +2,8 @@
 
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { __root } from '../utils';
-import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler } from '../types';
+import { __root } from '../../utils';
+import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler } from '../../types';
 import { Collection } from './Collection';
 import { Loq } from './Loq';
 import { Queue } from './Queue';

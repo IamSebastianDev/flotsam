@@ -12,3 +12,4 @@ export type { EvaluatorFunction } from './EvaluatorFunction';
 export type { Callback } from './Callback';
 export type { ErrorHandler } from './ErrorHandler';
 export type { EvaluatorOptions } from './EvaluatorOptions';
+export type { FindByProperty } from './FindByProperty';

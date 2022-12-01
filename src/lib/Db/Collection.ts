@@ -1,16 +1,15 @@
 /** @format */
 
-import { __root, safeAsyncAbort, isTruthy, sortByProperty } from '../utils';
+import { __root, safeAsyncAbort, isTruthy, sortByProperty } from '../../utils';
 import { Flotsam } from './Flotsam';
-import { readdir, mkdir, rm, stat, readFile, writeFile } from 'node:fs/promises';
+import { readdir, mkdir, rm, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { ObjectId } from './ObjectId';
 import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
 import { Queue } from './Queue';
-import type { Document, Rejector, FindOptions } from '../types';
+import type { Document, Rejector, FindOptions, FindByProperty } from '../../types';
 import { evaluateFindOptions } from './evaluateFindOptions';
-import { FindByProperty } from '../types/FindByProperty';
 import { Crypto } from './Crypto';
 
 export class Collection<T extends Record<string, unknown>> {

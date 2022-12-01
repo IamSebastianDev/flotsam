@@ -1,6 +1,16 @@
 /** @format */
 
-export { Flotsam } from './Flotsam';
-export { Collection } from './Collection';
-export { ObjectId } from './ObjectId';
-export { JSONDocument } from './JSONDocument';
+export { Flotsam, Collection, ObjectId, JSONDocument } from './Db';
+export {
+    Exactly,
+    GreaterThan,
+    GreaterThanOrEqual,
+    In,
+    Is,
+    LessThan,
+    LessThanOrEqual,
+    Like,
+    NotEqual,
+    RegExp,
+    Unsafe,
+} from './Evaluators';

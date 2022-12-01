@@ -1,5 +1,5 @@
 /** @format */
-import { DocumentInit, Document } from '../types';
+import { DocumentInit, Document } from '../../types';
 import { ObjectId } from './ObjectId';
 
 export class JSONDocument<T extends Record<string, unknown>> {

@@ -3,8 +3,6 @@
   "version": "1.0.0",
   "description": "a lightweight, dependency document based json database",
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
   "exports": {
     "./db": {
       "import": "./dist/db/index.mjs",
@@ -17,7 +15,6 @@
       "types": "./dist/types/evaluators.d.ts"
     }
   },
-  "types": "dist/types/index.d.ts",
   "typesVersions": {
     "*": {
       "db": [
@@ -28,6 +25,9 @@
       ]
     }
   },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/types/index.d.ts",
   "author": "Sebastian Heinz",
   "license": "MIT",
   "repository": "https://github.com/IamSebastianDev/flotsam",

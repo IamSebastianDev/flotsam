@@ -3,7 +3,7 @@
 import { existsSync } from 'node:fs';
 import { appendFile, readFile, stat, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { __root } from '../utils';
+import { __root } from '../../utils';
 import { Flotsam } from './Flotsam';
 
 export class Loq {
