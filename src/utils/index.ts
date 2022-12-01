@@ -5,3 +5,4 @@ export { __root } from './root.util';
 export { isNonNull } from './isNonNull.util';
 export { isTruthy } from './isTruthy.util';
 export { sortByProperty } from './sortByProperty.util';
+export { isDocument } from './isDocument.util';
