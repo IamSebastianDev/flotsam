@@ -30,7 +30,7 @@ import { Like, In, Exactly } from 'flotsam/evaluators';
 // create and connect to the database instance
 const db = new Flotsam({
     root: './store', // Physical directory to store the documents in
-    auth: '<secret key>', // A secret key to ensure encryption on disk
+    auth: '<secret key>', // An optional secret key to ensure encryption on disk. If left blank, no encryption happens.
     log: './store/.log', // Location for physical log file, leave empty to suppress log
 });
 await db.connect();
