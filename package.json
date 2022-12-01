@@ -6,10 +6,10 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/types/index.d.ts"
+    "./db": {
+      "import": "./dist/db/index.mjs",
+      "require": "./dist/db/index.js",
+      "types": "./dist/types/db.d.ts"
     },
     "./evaluators": {
       "import": "./dist/evaluators/index.mjs",
@@ -20,8 +20,8 @@
   "types": "dist/types/index.d.ts",
   "typesVersions": {
     "*": {
-      "*": [
-        "dist/types/index.d.ts"
+      "db": [
+        "dist/types/db.d.ts"
       ],
       "evaluators": [
         "dist/types/evaluators.d.ts"

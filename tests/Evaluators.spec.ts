@@ -1,7 +1,8 @@
 /** @format */
 
 import test from 'ava';
-import { Flotsam, Exactly, Is, Like, In, Unsafe } from '../src';
+import { Flotsam } from '../src';
+import { Exactly, Is, Like, In, Unsafe } from '../src/lib/Evaluators';
 
 // Setup the test by creating a new Database instance and populate it with
 // a Collection and a Document
@@ -55,7 +56,7 @@ test.serial('[Evaluators] Exactly should throws when accessing a non existing pr
     });
 });
 
-test.serial('[Evaluators] Exactly should not throw wenn accessing a non existing property.', async (t) => {
+test.serial('[Evaluators] Exactly should not throw when accessing a non existing property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -143,7 +144,7 @@ test.serial('[Evaluators] Like should compare and not match two values that do n
     t.not(result?.data, 'abc');
 });
 
-test.serial('[Evaluators] Like should throw wenn passed a non existing property in strict mode.', async (t) => {
+test.serial('[Evaluators] Like should throw when passed a non existing property in strict mode.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -153,7 +154,7 @@ test.serial('[Evaluators] Like should throw wenn passed a non existing property 
     });
 });
 
-test.serial('[Evaluators] Like should not throw wenn passed a non existing property not in strict mode.', async (t) => {
+test.serial('[Evaluators] Like should not throw when passed a non existing property not in strict mode.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -163,7 +164,7 @@ test.serial('[Evaluators] Like should not throw wenn passed a non existing prope
     });
 });
 
-test.serial('[Evaluators] Like should throw wenn passed a non string property.', async (t) => {
+test.serial('[Evaluators] Like should throw when passed a non string property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -193,7 +194,7 @@ test.serial('[Evaluators] In should fail when passed a range outside the stored 
     t.is(result, null);
 });
 
-test.serial('[Evaluators] In should throw wenn accessing a non existing property in strict mode.', async (t) => {
+test.serial('[Evaluators] In should throw when accessing a non existing property in strict mode.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
@@ -204,7 +205,7 @@ test.serial('[Evaluators] In should throw wenn accessing a non existing property
 });
 
 test.serial(
-    '[Evaluators] In should not throw wenn accessing a non existing property not in strict mode.',
+    '[Evaluators] In should not throw when accessing a non existing property not in strict mode.',
     async (t) => {
         const db = (t.context as Record<string, unknown>).db as Flotsam;
         const test = await db.collect<{ data: string; number: number }>('test');
@@ -220,7 +221,7 @@ test.serial(
  * Unsafe
  */
 
-test.serial('[Evaluators] Unsafe should not throw wenn accessing a non existing property.', async (t) => {
+test.serial('[Evaluators] Unsafe should not throw when accessing a non existing property.', async (t) => {
     const db = (t.context as Record<string, unknown>).db as Flotsam;
     const test = await db.collect<{ data: string; number: number }>('test');
 
