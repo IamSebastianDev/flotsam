@@ -4,6 +4,25 @@
 
 > Minimal Documentation for first Implementation
 
+### Local testing
+
+```bash
+# clone repo
+https://github.com/IamSebastianDev/flotsam.git
+# switch to development branch
+git checkout development
+# install dependencies and build the package
+yarn ci
+yarn build
+# link the package locally
+yarn link .
+
+# Use the package in another project as local dependency by linking
+yarn link flotsam
+```
+
+### Api
+
 ```ts
 import { Flotsam } from 'flotsam/db';
 import { Like, In, Exactly } from 'flotsam/evaluators';
