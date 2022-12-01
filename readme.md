@@ -8,7 +8,7 @@
 
 ```bash
 # clone repo
-https://github.com/IamSebastianDev/flotsam.git
+git clone https://github.com/IamSebastianDev/flotsam.git
 # switch to development branch
 git checkout development
 # install dependencies and build the package
