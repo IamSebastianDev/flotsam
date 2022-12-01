@@ -1,6 +1,6 @@
 /** @format */
 
-import { __root, safeAsyncAbort, isTruthy, sortByProperty } from '../../utils';
+import { __root, safeAsyncAbort, isTruthy, sortByProperty, isDocument } from '../../utils';
 import { Flotsam } from './Flotsam';
 import { readdir, mkdir, rm, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -178,10 +178,10 @@ export class Collection<T extends Record<string, unknown>> {
                 let content = document.toFile();
                 if (this.#crypt) content = this.#crypt.encrypt(content);
 
-                const path = resolve(this.#dir, document.id.str);
+                const path = resolve(this.#dir, document._id.str);
                 await writeFile(path, content, 'utf-8');
 
-                this.#documents.set(document.id.str, document);
+                this.#documents.set(document._id.str, document);
 
                 this.ctx.emit('insert', document.toDoc());
 
@@ -198,13 +198,21 @@ export class Collection<T extends Record<string, unknown>> {
      * @returns { Promise<Document> } the created Document
      */
 
-    async insertOne(data: T): Promise<Document<T> | false> {
+    async insertOne(data: T | Document<T>): Promise<Document<T> | false> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const doc = new JSONDocument({ _: data });
+                    let doc, upsert;
+                    if (isDocument(data)) {
+                        doc = new JSONDocument({ _id: data._id.str, _: data });
+                        upsert = true;
+                    } else {
+                        doc = new JSONDocument({ _: data });
+                    }
+
                     const inserted = await this.insert(doc);
 
+                    if (inserted && upsert) this.ctx.emit('upsert', doc.toDoc());
                     res(inserted ? doc.toDoc() : false);
                 });
             })
@@ -217,8 +225,18 @@ export class Collection<T extends Record<string, unknown>> {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     const docs = data.map((doc) => new JSONDocument({ _: doc }));
                     const success = await Promise.all(
-                        docs.map(async (doc) => {
-                            return await this.insert(doc);
+                        data.map(async (data) => {
+                            let doc, upsert;
+                            if (isDocument(data)) {
+                                doc = new JSONDocument({ _id: data._id.str, _: data });
+                                upsert = true;
+                            } else {
+                                doc = new JSONDocument({ _: data });
+                            }
+                            const inserted = await this.insert(doc);
+
+                            if (inserted && upsert) this.ctx.emit('upsert', doc.toDoc);
+                            return inserted;
                         })
                     );
 
@@ -552,11 +570,12 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise(async (res, rej) => {
                 const updated = new JSONDocument({ _id: document._id.str, _: { ...document, ...data } });
-                this.#documents.set(document._id.str, updated);
 
                 let content = updated.toFile();
                 if (this.#crypt) content = this.#crypt.encrypt(content);
+
                 await writeFile(resolve(this.#dir, document._id.str), content, 'utf8');
+                this.#documents.set(document._id.str, updated);
 
                 return res(updated.toDoc());
             })
@@ -587,6 +606,7 @@ export class Collection<T extends Record<string, unknown>> {
                     }
 
                     const updated = await this.update(item[1].toDoc(), data);
+                    if (updated) this.ctx.emit('update');
 
                     return res(updated);
                 });
@@ -616,6 +636,7 @@ export class Collection<T extends Record<string, unknown>> {
                     }
 
                     const updated = await this.update(items[0], data);
+                    if (updated) this.ctx.emit('update');
 
                     return res(updated);
                 });
@@ -645,6 +666,7 @@ export class Collection<T extends Record<string, unknown>> {
                     }
 
                     const updated = await this.update(items[0], data);
+                    if (updated) this.ctx.emit('update');
 
                     return res(updated);
                 });
@@ -662,7 +684,13 @@ export class Collection<T extends Record<string, unknown>> {
                         return res(false);
                     }
 
-                    const updated = await Promise.all(items.map(async (item) => await this.update(item, data)));
+                    const updated = await Promise.all(
+                        items.map(async (item) => {
+                            const updated = await this.update(item, data);
+                            if (updated) this.ctx.emit('update');
+                            return updated;
+                        })
+                    );
 
                     return res(updated.every(isTruthy) ? updated : false);
                 });
