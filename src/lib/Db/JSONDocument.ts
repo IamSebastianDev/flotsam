@@ -4,15 +4,11 @@ import { ObjectId } from './ObjectId';
 
 export class JSONDocument<T extends Record<string, unknown>> {
     data: T;
-    #id: ObjectId;
+    _id: ObjectId;
     constructor(data: DocumentInit<T>) {
-        this.#id = data._id ? ObjectId.from(data._id) : new ObjectId();
+        this._id = data._id ? ObjectId.from(data._id) : new ObjectId();
         delete data._._id;
         this.data = { ...data._ };
-    }
-
-    get id() {
-        return this.#id;
     }
 
     /**
@@ -26,7 +22,7 @@ export class JSONDocument<T extends Record<string, unknown>> {
      */
 
     toFile(): string {
-        return JSON.stringify({ _id: this.#id.str, _: this.data });
+        return JSON.stringify({ _id: this._id.str, _: this.data });
     }
 
     /**
@@ -40,6 +36,6 @@ export class JSONDocument<T extends Record<string, unknown>> {
      */
 
     toDoc(): Document<T> {
-        return { ...this.data, _id: this.#id };
+        return { ...this.data, _id: this._id };
     }
 }
