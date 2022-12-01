@@ -18,12 +18,12 @@ export default [
         plugins: [commonjs(), resolve(), esbuild(), cleanup({ extensions: ['ts'] })],
         output: [
             {
-                file: './dist/index.js',
+                file: './dist/db/index.js',
                 format: 'cjs',
                 sourcemap: true,
             },
             {
-                file: './dist/index.mjs',
+                file: './dist/db/index.mjs',
                 format: 'es',
                 sourcemap: true,
             },
@@ -48,7 +48,7 @@ export default [
     bundle({
         input: './src/index.ts',
         output: {
-            file: pkg.types,
+            file: './dist/types/db.d.ts',
             format: 'es',
         },
         plugins: [resolve(), commonjs(), cleanup({ extensions: ['.ts'] }), dts()],
