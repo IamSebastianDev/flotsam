@@ -32,14 +32,22 @@ import { Crypto } from './Crypto';
  *
  * - Inserting a `Document`
  *
+ * This will create the `Document` and place it inside the `Collection`'s cache as well
+ * as the physical storage location. If encryption is enabled, the `Document` will be encrypted
+ * before being physically placed. If a `Document` is passed to the method instead of a
+ * data Object, the `Document` will be upserted if it already exists.
+ *
  * ```ts
  * const doc = await users.insertOne({name: 'Flotsam'})
  * // logs { name: 'Flotsam', _id: ObjectId }
  * ```
  *
- * > Note: If a `Document` is inserted instead of a Data Object, the Document is upserted if it exists
- *
  * - Finding a `Document`
+ *
+ * A `Document` can be searched for and found by each of it's properties by creating a
+ * corresponding `FindOptions` object. Methods exist to select a `Document` inside the
+ * Collection by it's Id or just it's properties without specifying pagination or ordering
+ * parameters.
  *
  * ```ts
  * const doc = await users.findOneBy({ name: 'Flotsam' });
@@ -48,12 +56,18 @@ import { Crypto } from './Crypto';
  *
  * - Updating a `Document`
  *
+ * A `Document` can be updated by providing a `FindOptions` object to identify the `Document` to
+ * update as well as a object containing the properties to update.
+ *
  * ```ts
  * const doc = await users.updateOne({ where: { name: 'Flotsam' } }, { name: 'Jetsam' });
  * // logs { name: 'Jetsam', _id: ObjectId }
  * ```
  *
  * - Deleting a `Document`
+ *
+ * Deleting a `Document` will remove it from the `Collection`s cache as well from it's physical
+ * storage location.
  *
  * ```ts
  * let doc = await users.deleteOne({ where: { name: 'Flotsam' }})
