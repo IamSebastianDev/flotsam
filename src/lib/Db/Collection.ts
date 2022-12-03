@@ -225,7 +225,7 @@ export class Collection<T extends Record<string, unknown>> {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     let doc, upsert;
                     if (isDocument(data)) {
-                        doc = new JSONDocument({ _id: data._id.str, _: data });
+                        doc = new JSONDocument({ _id: data.id, _: data });
                         upsert = true;
                     } else {
                         doc = new JSONDocument({ _: data });
@@ -328,7 +328,7 @@ export class Collection<T extends Record<string, unknown>> {
                         return res(false);
                     }
 
-                    const deleted = await this.delete(items[0]._id.str);
+                    const deleted = await this.delete(items[0].id);
 
                     return res(deleted ? items[0] : false);
                 });
@@ -346,7 +346,7 @@ export class Collection<T extends Record<string, unknown>> {
                         return res(false);
                     }
 
-                    const deleted = await Promise.all(items.map(async (item) => this.delete(item._id.str)));
+                    const deleted = await Promise.all(items.map(async (item) => this.delete(item.id)));
 
                     return res(deleted.every(isTruthy) ? items : false);
                 });
@@ -590,13 +590,13 @@ export class Collection<T extends Record<string, unknown>> {
     private async update(document: Document<T>, data: Partial<T>): Promise<Document<T>> {
         return this.#queue.enqueue(
             new Promise(async (res, rej) => {
-                const updated = new JSONDocument({ _id: document._id.str, _: { ...document, ...data } });
+                const updated = new JSONDocument({ _id: document.id, _: { ...document, ...data } });
 
                 let content = updated.toFile();
                 if (this.#crypt) content = this.#crypt.encrypt(content);
 
-                await writeFile(resolve(this.#dir, document._id.str), content, 'utf8');
-                this.#documents.set(document._id.str, updated);
+                await writeFile(resolve(this.#dir, document.id), content, 'utf8');
+                this.#documents.set(document.id, updated);
 
                 return res(updated.toDoc());
             })
