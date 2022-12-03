@@ -61,7 +61,7 @@ $ git checkout -b bugfix/bug-to-fix
 
 ## Development - Tests
 
-If you add new functionality, tests should be added. The project uses [ava](https://github.com/avajs/ava) as test runner. Tests can be found under the `tests` directory. Tests are written per file and should clearly indicate which function they test. All tests are written in TypeScript.
+If you add new functionality, tests should be added. The project uses [ava](https://github.com/avajs/ava) as test runner. Tests can be found under the `tests` directory. Tests are written per file and should indicate which function they test. All tests are written in Typescript.
 
 ## Development - Github Actions
 
