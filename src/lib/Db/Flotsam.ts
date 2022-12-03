@@ -2,8 +2,8 @@
 
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { safeAsyncAbort, __root } from '../../utils';
-import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler } from '../../types';
+import { __root } from '../../utils';
+import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler, Validator } from '../../types';
 import { Collection } from './Collection';
 import { Loq } from './Loq';
 import { Queue } from './Queue';
@@ -107,6 +107,12 @@ export class Flotsam {
         this.log = init.log;
 
         this.createInitialListeners();
+
+        process.on('uncaughtException', (error) => {
+            this.close().then(() => {
+                process.exit(1);
+            });
+        });
     }
 
     /**
