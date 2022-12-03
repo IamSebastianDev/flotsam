@@ -50,7 +50,7 @@ export default [
         plugins: [commonjs(), resolve(), esbuild(), cleanup({ extensions: ['ts'] })],
         output: [
             {
-                file: './dist/valuators/index.js',
+                file: './dist/evaluators/index.js',
                 format: 'cjs',
                 sourcemap: true,
             },
