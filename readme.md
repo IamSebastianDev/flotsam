@@ -3,7 +3,6 @@
 # Fløtsam
 
 [![Npm package version](https://badgen.net/npm/v/flotsamjs)](https://www.npmjs.com/package/flotsamjs)
-[![Npm package total downloads](https://badgen.net/npm/dt/flotsamjs)](https://npmjs.com/package/flotsamjs)
 [![Npm package license](https://badgen.net/npm/license/flotsamjs)](https://npmjs.com/package/flotsamjs)
 [![Github tag](https://badgen.net/github/tag/iamsebastiandev/flotsam)](https://github.com/iamsebastiandev/flotsam/tags)
 
