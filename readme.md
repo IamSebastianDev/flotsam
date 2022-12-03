@@ -3,9 +3,8 @@
 # Fløtsam
 
 [![Npm package version](https://badgen.net/npm/v/flotsamjs)](https://www.npmjs.com/package/flotsamjs)
-[![Npm package total downloads](https://badgen.net/npm/dt/flotsamjs)](https://npmjs.com/package/fltosamjs)
 [![Npm package license](https://badgen.net/npm/license/flotsamjs)](https://npmjs.com/package/flotsamjs)
-[![Github tag](https://badgen.net/github/tag/iamsebastiandev/flotsam)](https://github.com/iamsebastiandev/rollup-plugin-rld/tags)
+[![Github tag](https://badgen.net/github/tag/iamsebastiandev/flotsam)](https://github.com/iamsebastiandev/flotsam/tags)
 
 A [Typescript](https://www.typescriptlang.org) first, **JSON Document** based, dependency free minimal Database.
 
@@ -121,4 +120,4 @@ appreciated, if you have any questions, feel free to reach out.
 
 ## License
 
-Stræm.js is licensed under the [MIT License](https://opensource.org/licenses/MIT)
+Fløtsam is licensed under the [MIT License](https://opensource.org/licenses/MIT)
