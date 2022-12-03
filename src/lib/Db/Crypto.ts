@@ -1,6 +1,11 @@
 /** @format */
 import { CipherKey, createCipheriv, createDecipheriv, createHash, randomBytes, BinaryLike } from 'crypto';
 
+/**
+ * @description
+ * The Crypto module is used to handle the encryption and decryption of documents
+ * inside the `Collection` / `Flotsam` instance.
+ */
 export class Crypto {
     #algorithm = 'aes-256-cbc';
     #vectorLength = 16;
