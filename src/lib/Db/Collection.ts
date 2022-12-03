@@ -8,7 +8,7 @@ import { ObjectId } from './ObjectId';
 import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
 import { Queue } from './Queue';
-import type { Document, Rejector, FindOptions, FindByProperty } from '../../types';
+import type { Document, Rejector, FindOptions, FindByProperty, DocumentInit } from '../../types';
 import { evaluateFindOptions } from './evaluateFindOptions';
 import { Crypto } from './Crypto';
 
@@ -76,6 +76,10 @@ export class Collection<T extends Record<string, unknown>> {
         };
     }
 
+    private checkDocumentValidity(doc: unknown): doc is DocumentInit<T> {
+        return doc !== undefined && doc !== null && typeof doc === 'object' && '_id' in doc && '_' in doc;
+    }
+
     /**
      * @public
      * @method
@@ -96,15 +100,30 @@ export class Collection<T extends Record<string, unknown>> {
 
                     // get all documents inside the dir
                     this.#files = (await readdir(this.#dir)).filter((file) => ObjectId.is(file));
+                    const result = await Promise.all(
+                        this.#files.map(async (document) => {
+                            let content = await readFile(resolve(this.#dir, document), 'utf-8');
 
-                    for await (const document of this.#files) {
-                        let content = await readFile(resolve(this.#dir, document), 'utf-8');
-                        if (this.#crypt) content = this.#crypt.decrypt(content);
+                            if (this.#crypt) content = this.#crypt.decrypt(content);
+                            const doc: DocumentInit<T> = JSON.parse(content);
 
-                        const doc: { _: T; _id: string } = JSON.parse(content);
-                        this.#documents.set(
-                            ObjectId.from(doc._id).str,
-                            new JSONDocument<T>({ _id: document, _: doc._ })
+                            if (!this.checkDocumentValidity(doc)) {
+                                return false;
+                            }
+
+                            this.#documents.set(
+                                ObjectId.from(doc._id || document).str,
+                                new JSONDocument<T>({ _id: document, _: doc._ })
+                            );
+
+                            return true;
+                        })
+                    );
+
+                    if (result.some((val) => !val)) {
+                        this.ctx.emit(
+                            'error',
+                            `Error during deserialization. Some Documents might be corrupted or encrypted with a different authorization key.`
                         );
                     }
 
@@ -133,13 +152,15 @@ export class Collection<T extends Record<string, unknown>> {
                         await mkdir(this.#dir);
                     }
 
-                    for await (const [id, document] of [...this.#documents.entries()]) {
-                        const path = resolve(this.#dir, id);
-                        let content = document.toFile();
-                        if (this.#crypt) content = this.#crypt.encrypt(content);
+                    await Promise.all(
+                        [...this.#documents.entries()].map(async ([id, document]) => {
+                            const path = resolve(this.#dir, id);
+                            let content = document.toFile();
+                            if (this.#crypt) content = this.#crypt.encrypt(content);
 
-                        await writeFile(path, content, 'utf-8');
-                    }
+                            await writeFile(path, content, 'utf-8');
+                        })
+                    );
 
                     this.ctx.emit('serialize', this);
                     res(true);
@@ -204,7 +225,7 @@ export class Collection<T extends Record<string, unknown>> {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     let doc, upsert;
                     if (isDocument(data)) {
-                        doc = new JSONDocument({ _id: data._id.str, _: data });
+                        doc = new JSONDocument({ _id: data.id, _: data });
                         upsert = true;
                     } else {
                         doc = new JSONDocument({ _: data });
@@ -307,7 +328,7 @@ export class Collection<T extends Record<string, unknown>> {
                         return res(false);
                     }
 
-                    const deleted = await this.delete(items[0]._id.str);
+                    const deleted = await this.delete(items[0].id);
 
                     return res(deleted ? items[0] : false);
                 });
@@ -325,7 +346,7 @@ export class Collection<T extends Record<string, unknown>> {
                         return res(false);
                     }
 
-                    const deleted = await Promise.all(items.map(async (item) => this.delete(item._id.str)));
+                    const deleted = await Promise.all(items.map(async (item) => this.delete(item.id)));
 
                     return res(deleted.every(isTruthy) ? items : false);
                 });
@@ -569,13 +590,13 @@ export class Collection<T extends Record<string, unknown>> {
     private async update(document: Document<T>, data: Partial<T>): Promise<Document<T>> {
         return this.#queue.enqueue(
             new Promise(async (res, rej) => {
-                const updated = new JSONDocument({ _id: document._id.str, _: { ...document, ...data } });
+                const updated = new JSONDocument({ _id: document.id, _: { ...document, ...data } });
 
                 let content = updated.toFile();
                 if (this.#crypt) content = this.#crypt.encrypt(content);
 
-                await writeFile(resolve(this.#dir, document._id.str), content, 'utf8');
-                this.#documents.set(document._id.str, updated);
+                await writeFile(resolve(this.#dir, document.id), content, 'utf8');
+                this.#documents.set(document.id, updated);
 
                 return res(updated.toDoc());
             })

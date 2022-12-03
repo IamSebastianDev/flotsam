@@ -1,7 +1,7 @@
 /** @format */
 
 import test from 'ava';
-import { ObjectId } from '../src/lib/ObjectId';
+import { ObjectId } from '../src/lib/Db/ObjectId';
 
 test('[ObjectId] Instances correctly', (t) => {
     t.is(typeof new ObjectId(), 'object');

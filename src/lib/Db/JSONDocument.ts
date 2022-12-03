@@ -36,6 +36,12 @@ export class JSONDocument<T extends Record<string, unknown>> {
      */
 
     toDoc(): Document<T> {
-        return { ...this.data, _id: this._id };
+        return {
+            ...this.data,
+            _id: this._id,
+            get id() {
+                return this._id.str;
+            },
+        };
     }
 }

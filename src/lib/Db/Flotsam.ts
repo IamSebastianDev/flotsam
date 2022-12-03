@@ -2,7 +2,7 @@
 
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { __root } from '../../utils';
+import { safeAsyncAbort, __root } from '../../utils';
 import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler } from '../../types';
 import { Collection } from './Collection';
 import { Loq } from './Loq';
@@ -96,7 +96,7 @@ export class Flotsam {
 
         this.on('close', () => {
             this.connected = false;
-            !this.quiet && console.log(`🪢  \x1b[34m[Flotsam] DB Closed.\x1b[0m`);
+            !this.quiet && console.log(`🐙 \x1b[34m[Flotsam] DB Closed.\x1b[0m`);
         });
     }
 
@@ -165,11 +165,18 @@ export class Flotsam {
      */
 
     async collect<T extends Record<string, unknown>>(namespace: string): Promise<Collection<T>> {
-        if (!this.#collections[namespace]) {
-            this.#collections[namespace] = new Collection<T>(this, namespace);
-            await this.#collections[namespace].deserialize();
-        }
-        return this.#collections[namespace];
+        return new Promise(async (res, rej) => {
+            return safeAsyncAbort(
+                (error) => this.emit('error', error),
+                async () => {
+                    if (!this.#collections[namespace]) {
+                        this.#collections[namespace] = new Collection<T>(this, namespace);
+                        await this.#collections[namespace].deserialize();
+                    }
+                    res(this.#collections[namespace]);
+                }
+            );
+        });
     }
 
     /**
@@ -199,10 +206,12 @@ export class Flotsam {
      */
 
     async close(): Promise<void> {
+        await Promise.allSettled(
+            Object.values(this.#collections).map(async (collection) => {
+                return await collection.serialize();
+            })
+        );
         this.emit('close');
-        Object.values(this.#collections).forEach(async (collection) => {
-            await collection.serialize();
-        });
     }
 
     /**
