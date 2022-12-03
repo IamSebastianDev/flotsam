@@ -165,6 +165,9 @@ export class Flotsam {
      */
 
     async collect<T extends Record<string, unknown>>(namespace: string): Promise<Collection<T>> {
+        if (!this.connected) {
+            this.emit('error', `🐙 \x1b[31m[Flotsam] Attempted collecting before connecting.\x1b[0m`);
+        }
         return new Promise(async (res, rej) => {
             return safeAsyncAbort(
                 (error) => this.emit('error', error),
