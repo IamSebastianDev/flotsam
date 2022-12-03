@@ -2,7 +2,7 @@
 
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { __root } from '../../utils';
+import { safeAsyncAbort, __root } from '../../utils';
 import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler } from '../../types';
 import { Collection } from './Collection';
 import { Loq } from './Loq';
@@ -165,11 +165,18 @@ export class Flotsam {
      */
 
     async collect<T extends Record<string, unknown>>(namespace: string): Promise<Collection<T>> {
-        if (!this.#collections[namespace]) {
-            this.#collections[namespace] = new Collection<T>(this, namespace);
-            await this.#collections[namespace].deserialize();
-        }
-        return this.#collections[namespace];
+        return new Promise(async (res, rej) => {
+            return safeAsyncAbort(
+                (error) => this.emit('error', error),
+                async () => {
+                    if (!this.#collections[namespace]) {
+                        this.#collections[namespace] = new Collection<T>(this, namespace);
+                        await this.#collections[namespace].deserialize();
+                    }
+                    res(this.#collections[namespace]);
+                }
+            );
+        });
     }
 
     /**
