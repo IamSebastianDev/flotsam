@@ -8,6 +8,13 @@ import resolve from '@rollup/plugin-node-resolve';
 import pkg from '../package.json' assert { type: 'json' };
 
 const bundle = (config) => ({
+    plugins: [commonjs(), resolve(), esbuild(), cleanup({ extensions: ['ts'] })],
+    external: (id) => !/^[./]/.test(id),
+    ...config,
+});
+
+const types = (config) => ({
+    plugins: [resolve(), commonjs(), cleanup({ extensions: ['.ts'] }), dts()],
     external: (id) => !/^[./]/.test(id),
     ...config,
 });
@@ -15,7 +22,6 @@ const bundle = (config) => ({
 export default [
     bundle({
         input: './src/index.ts',
-        plugins: [commonjs(), resolve(), esbuild(), cleanup({ extensions: ['ts'] })],
         output: [
             {
                 file: './dist/index.js',
@@ -31,7 +37,6 @@ export default [
     }),
     bundle({
         input: './src/lib/Db/index.ts',
-        plugins: [commonjs(), resolve(), esbuild(), cleanup({ extensions: ['ts'] })],
         output: [
             {
                 file: './dist/db/index.js',
@@ -47,10 +52,9 @@ export default [
     }),
     bundle({
         input: './src/lib/Evaluators/index.ts',
-        plugins: [commonjs(), resolve(), esbuild(), cleanup({ extensions: ['ts'] })],
         output: [
             {
-                file: './dist/valuators/index.js',
+                file: './dist/evaluators/index.js',
                 format: 'cjs',
                 sourcemap: true,
             },
@@ -62,27 +66,46 @@ export default [
         ],
     }),
     bundle({
+        input: './src/lib/Validators/index.ts',
+        output: [
+            {
+                file: './dist/validators/index.js',
+                format: 'cjs',
+                sourcemap: true,
+            },
+            {
+                file: './dist/validators/index.mjs',
+                format: 'es',
+                sourcemap: true,
+            },
+        ],
+    }),
+    types({
         input: './src/index.ts',
         output: {
             file: './dist/types/index.d.ts',
             format: 'es',
         },
-        plugins: [resolve(), commonjs(), cleanup({ extensions: ['.ts'] }), dts()],
     }),
-    bundle({
+    types({
         input: './src/lib/Db/index.ts',
         output: {
             file: './dist/types/db.d.ts',
             format: 'es',
         },
-        plugins: [resolve(), commonjs(), cleanup({ extensions: ['.ts'] }), dts()],
     }),
-    bundle({
+    types({
         input: './src/lib/Evaluators/index.ts',
         output: {
             file: './dist/types/evaluators.d.ts',
             format: 'es',
         },
-        plugins: [resolve(), commonjs(), cleanup({ extensions: ['.ts'] }), dts()],
+    }),
+    types({
+        input: './src/lib/Validators/index.ts',
+        output: {
+            file: './dist/types/validators.d.ts',
+            format: 'es',
+        },
     }),
 ];
