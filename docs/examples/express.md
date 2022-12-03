@@ -1,6 +1,6 @@
 <!-- @format -->
 
-# Fløtsam - express example
+# Fløtsam - Express example
 
 This example shows how to use Fløtsam together with `ts-node` & `express` to create a basic Express CRUD app.
 
