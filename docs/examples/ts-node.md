@@ -35,11 +35,11 @@ Create a `tsconfig.json` file with the following options.
 }
 ```
 
-Create a `main.ts` file in the root of the project. You can now execute the file with `ts-node-esm main.ts`. If this doesn't work, you might need to install **typescript** or **ts-node** globally.
+Create a `main.ts` file in the root of the project. You can now run the file with `ts-node-esm main.ts`. If this doesn't work, you might need to install **typescript** or **ts-node** globally.
 
 ## Fløtsam
 
-Open the `main.ts` file you just created and add the following lines to import and create a `Flotsam` Instance.
+Open the `main.ts` file you created and add the following lines to import and create a `Flotsam` Instance.
 
 ```ts
 import { Flotsam } from 'flotsamjs/db';
