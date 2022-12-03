@@ -220,23 +220,20 @@ export class Flotsam {
      * previously.
      */
 
-    async collect<T extends Record<string, unknown>>(namespace: string): Promise<Collection<T>> {
+    async collect<T extends Record<string, unknown>>(
+        namespace: string,
+        validationStrategy?: Validator<T>
+    ): Promise<Collection<T>> {
         if (!this.connected) {
             this.emit('error', `🐙 \x1b[31m[Flotsam] Attempted collecting before connecting.\x1b[0m`);
         }
 
-        return new Promise(async (res, rej) => {
-            return safeAsyncAbort(
-                (error) => this.emit('error', error),
-                async () => {
-                    if (!this.#collections[namespace]) {
-                        this.#collections[namespace] = new Collection<T>(this, namespace);
-                        await this.#collections[namespace].deserialize();
-                    }
-                    res(this.#collections[namespace]);
-                }
-            );
-        });
+        if (!this.#collections[namespace]) {
+            this.#collections[namespace] = new Collection<T>(this, namespace, validationStrategy);
+            await this.#collections[namespace].deserialize();
+        }
+
+        return this.#collections[namespace];
     }
 
     /**

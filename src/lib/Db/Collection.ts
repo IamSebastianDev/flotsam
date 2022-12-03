@@ -8,7 +8,7 @@ import { ObjectId } from './ObjectId';
 import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
 import { Queue } from './Queue';
-import type { Document, Rejector, FindOptions, FindByProperty, DocumentInit } from '../../types';
+import type { Document, Rejector, FindOptions, FindByProperty, DocumentInit, Validator } from '../../types';
 import { evaluateFindOptions } from './evaluateFindOptions';
 import { Crypto } from './Crypto';
 
@@ -86,7 +86,7 @@ export class Collection<T extends Record<string, unknown>> {
     #documents: Map<string, JSONDocument<T>> = new Map();
     #queue: Queue = new Queue();
     #crypt: Crypto | null = null;
-    constructor(private ctx: Flotsam, private namespace: string) {
+    constructor(private ctx: Flotsam, private namespace: string, private validationStrategy?: Validator<T>) {
         this.#dir = resolve(ctx.root, this.namespace);
         this.#crypt = ctx.auth ? new Crypto(ctx.auth) : null;
 
@@ -141,7 +141,7 @@ export class Collection<T extends Record<string, unknown>> {
 
     private rejector(reject: Rejector): Rejector {
         return (error: unknown) => {
-            this.ctx.emit('error', error);
+            this.ctx.emit('error', (error as Error).message);
             reject(error);
         };
     }
@@ -191,7 +191,7 @@ export class Collection<T extends Record<string, unknown>> {
 
                             this.#documents.set(
                                 ObjectId.from(doc._id || document).str,
-                                new JSONDocument<T>({ _id: document, _: doc._ })
+                                new JSONDocument<T>({ _id: document, _: doc._ }, this.validationStrategy)
                             );
 
                             return true;
@@ -327,10 +327,10 @@ export class Collection<T extends Record<string, unknown>> {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     let doc, upsert;
                     if (isDocument(data)) {
-                        doc = new JSONDocument({ _id: data.id, _: data });
+                        doc = new JSONDocument({ _id: data.id, _: data }, this.validationStrategy);
                         upsert = true;
                     } else {
-                        doc = new JSONDocument({ _: data });
+                        doc = new JSONDocument({ _: data }, this.validationStrategy);
                     }
 
                     const inserted = await this.insert(doc);
@@ -368,15 +368,15 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const docs = data.map((doc) => new JSONDocument({ _: doc }));
+                    const docs = data.map((doc) => new JSONDocument({ _: doc }), this.validationStrategy);
                     const success = await Promise.all(
                         data.map(async (data) => {
                             let doc, upsert;
                             if (isDocument(data)) {
-                                doc = new JSONDocument({ _id: data._id.str, _: data });
+                                doc = new JSONDocument({ _id: data._id.str, _: data }, this.validationStrategy);
                                 upsert = true;
                             } else {
-                                doc = new JSONDocument({ _: data });
+                                doc = new JSONDocument({ _: data }, this.validationStrategy);
                             }
                             const inserted = await this.insert(doc);
 
