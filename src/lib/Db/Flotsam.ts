@@ -96,7 +96,7 @@ export class Flotsam {
 
         this.on('close', () => {
             this.connected = false;
-            !this.quiet && console.log(`🪢  \x1b[34m[Flotsam] DB Closed.\x1b[0m`);
+            !this.quiet && console.log(`🐙 \x1b[34m[Flotsam] DB Closed.\x1b[0m`);
         });
     }
 
@@ -199,10 +199,12 @@ export class Flotsam {
      */
 
     async close(): Promise<void> {
+        await Promise.allSettled(
+            Object.values(this.#collections).map(async (collection) => {
+                return await collection.serialize();
+            })
+        );
         this.emit('close');
-        Object.values(this.#collections).forEach(async (collection) => {
-            await collection.serialize();
-        });
     }
 
     /**
