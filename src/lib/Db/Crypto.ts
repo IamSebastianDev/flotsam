@@ -23,6 +23,9 @@ export class Crypto {
 
     decrypt(string: string): string {
         const { content, vector } = JSON.parse(string);
+
+        // safeguard for when the parsed string was not encrypted
+        if (!(content && vector)) return string;
         const decipher = createDecipheriv(this.#algorithm, this.key, Buffer.from(vector, 'hex'));
 
         return Buffer.concat([decipher.update(Buffer.from(content, 'hex')), decipher.final()]).toString();

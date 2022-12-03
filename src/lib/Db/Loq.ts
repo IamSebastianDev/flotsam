@@ -3,31 +3,44 @@
 import { existsSync } from 'node:fs';
 import { appendFile, readFile, stat, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { __root } from '../../utils';
+import { safeAsyncAbort, __root } from '../../utils';
 import { Flotsam } from './Flotsam';
+import { Queue } from './Queue';
 
 export class Loq {
     #maxSafeFileSize: number = 157286400;
+    #queue: Queue = new Queue();
     constructor(private ctx: Flotsam) {}
 
+    private writeToStdOut(message: string) {
+        if (this.ctx.quiet) return;
+        process.stdout.write(message);
+    }
+
     private async writeToFile(message: string) {
-        if (this.ctx.quiet || !this.ctx.log) return;
+        this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(rej, async () => {
+                    if (this.ctx.quiet || !this.ctx.log) return;
 
-        const destination = resolve(this.ctx.root, this.ctx.log);
+                    const destination = resolve(this.ctx.root, this.ctx.log);
 
-        if (!existsSync(destination)) {
-            await writeFile(destination, '', 'utf-8');
-        }
+                    if (!existsSync(destination)) {
+                        await writeFile(destination, '', 'utf-8');
+                    }
 
-        const { size } = await stat(destination);
-        let lines = (await readFile(destination, 'utf-8')).split('\n');
+                    const { size } = await stat(destination);
+                    let lines = (await readFile(destination, 'utf-8')).split('\n');
 
-        if (size > this.#maxSafeFileSize) {
-            lines = lines.filter((_, i) => i > 100);
-            await writeFile(destination, lines.join('\n'), 'utf-8');
-        }
+                    if (size > this.#maxSafeFileSize) {
+                        lines = lines.filter((_, i) => i > 100);
+                        await writeFile(destination, lines.join('\n'), 'utf-8');
+                    }
 
-        await appendFile(destination, message, 'utf-8');
+                    await appendFile(destination, message, 'utf-8');
+                });
+            })
+        );
     }
 
     private get timestamp(): string {
@@ -35,7 +48,9 @@ export class Loq {
     }
 
     error(error: string) {
-        this.writeToFile(`[ERROR]:[${this.timestamp}] - ${error}\n`);
+        const message = `[ERROR]:[${this.timestamp}] - ${error}\n`;
+        this.writeToFile(message);
+        this.writeToStdOut(message);
     }
 
     message(content: string) {
