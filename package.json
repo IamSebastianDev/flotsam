@@ -58,7 +58,7 @@
     "build": " rollup -c .config/rollup.config.js",
     "dev": "yarn build --watch",
     "lint": "alex .",
-    "semantic-release": "semantic-release --branches main",
+    "semantic-release": "semantic-release --branches release",
     "test": "ava"
   },
   "ava": {
