@@ -152,13 +152,15 @@ export class Collection<T extends Record<string, unknown>> {
                         await mkdir(this.#dir);
                     }
 
-                    for await (const [id, document] of [...this.#documents.entries()]) {
-                        const path = resolve(this.#dir, id);
-                        let content = document.toFile();
-                        if (this.#crypt) content = this.#crypt.encrypt(content);
+                    await Promise.all(
+                        [...this.#documents.entries()].map(async ([id, document]) => {
+                            const path = resolve(this.#dir, id);
+                            let content = document.toFile();
+                            if (this.#crypt) content = this.#crypt.encrypt(content);
 
-                        await writeFile(path, content, 'utf-8');
-                    }
+                            await writeFile(path, content, 'utf-8');
+                        })
+                    );
 
                     this.ctx.emit('serialize', this);
                     res(true);
