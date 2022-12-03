@@ -12,6 +12,74 @@ import type { Document, Rejector, FindOptions, FindByProperty, DocumentInit } fr
 import { evaluateFindOptions } from './evaluateFindOptions';
 import { Crypto } from './Crypto';
 
+/**
+ * @Class
+ * The `Collection` class is used to interface between a `Fløtsam` instance and it's `Documents`.
+ * A `Collection` is created when executing the `collect()` method on a `Fløtsam` instance with a given namespace.
+ * As a namespace is directly tied to it's physical counterpart, instancing a existing `Collection` via
+ * the `collect()` method will return the cached `Collection`.
+ *
+ * ```ts
+ * const collection = await db.collect('<namespace>')
+ *
+ * // any collection will accept a generic as argument,
+ * // enabling strict type checks in subsequent methods
+ * const users = await db.collect<{ name: string }>('users')
+ * ```
+ *
+ * The created `Collection` is used to insert, find, update and delete `Documents`, that are contained
+ * within the `Collection`. There are different methods available for each operation.
+ *
+ * - Inserting a `Document`
+ *
+ * This will create the `Document` and place it inside the `Collection`'s cache as well
+ * as the physical storage location. If encryption is enabled, the `Document` will be encrypted
+ * before being physically placed. If a `Document` is passed to the method instead of a
+ * data Object, the `Document` will be upserted if it already exists.
+ *
+ * ```ts
+ * const doc = await users.insertOne({name: 'Flotsam'})
+ * // logs { name: 'Flotsam', _id: ObjectId }
+ * ```
+ *
+ * - Finding a `Document`
+ *
+ * A `Document` can be searched for and found by each of it's properties by creating a
+ * corresponding `FindOptions` object. Methods exist to select a `Document` inside the
+ * Collection by it's Id or just it's properties without specifying pagination or ordering
+ * parameters.
+ *
+ * ```ts
+ * const doc = await users.findOneBy({ name: 'Flotsam' });
+ * // logs { name: 'Flotsam', _id: ObjectId }
+ * ```
+ *
+ * - Updating a `Document`
+ *
+ * A `Document` can be updated by providing a `FindOptions` object to identify the `Document` to
+ * update as well as a object containing the properties to update.
+ *
+ * ```ts
+ * const doc = await users.updateOne({ where: { name: 'Flotsam' } }, { name: 'Jetsam' });
+ * // logs { name: 'Jetsam', _id: ObjectId }
+ * ```
+ *
+ * - Deleting a `Document`
+ *
+ * Deleting a `Document` will remove it from the `Collection`s cache as well from it's physical
+ * storage location.
+ *
+ * ```ts
+ * let doc = await users.deleteOne({ where: { name: 'Flotsam' }})
+ * // logs false
+ * doc = await users.deleteOne({where: { name: 'Jetsam' }})
+ * // logs { name: 'Jetsam', _id: ObjectId }
+ * ```
+ *
+ * A `Collection` should not be instanced directly. If a `Collection` instance is
+ * created, a `Flotsam` instance needs to be passed as well as the namespace.
+ */
+
 export class Collection<T extends Record<string, unknown>> {
     #dir: string;
     #files: string[] = [];
@@ -34,7 +102,8 @@ export class Collection<T extends Record<string, unknown>> {
     /**
      * @type { Promise<number> }
      * @description
-     * Returns the number of `Documents` currently in the collection.
+     * @readonly
+     * Returns the number of `Documents` currently stored in the collection.
      */
 
     get count(): Promise<number> {
@@ -47,8 +116,9 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @type { Promise<Document[]> }
+     * @readonly
      * @description
-     * Returns a copy of all `Documents` in the collection.
+     * Returns a copy of all `Documents` stored in the collection.
      */
 
     get entries(): Promise<Array<Document<T>>> {
@@ -76,6 +146,15 @@ export class Collection<T extends Record<string, unknown>> {
         };
     }
 
+    /**
+     * @private
+     * @description
+     * A custom TypeGuard to assert if an object is a Document.
+     *
+     * @param { unknown } doc
+     * @returns { boolean }
+     */
+
     private checkDocumentValidity(doc: unknown): doc is DocumentInit<T> {
         return doc !== undefined && doc !== null && typeof doc === 'object' && '_id' in doc && '_' in doc;
     }
@@ -98,7 +177,6 @@ export class Collection<T extends Record<string, unknown>> {
                         await mkdir(this.#dir);
                     }
 
-                    // get all documents inside the dir
                     this.#files = (await readdir(this.#dir)).filter((file) => ObjectId.is(file));
                     const result = await Promise.all(
                         this.#files.map(async (document) => {
@@ -193,7 +271,17 @@ export class Collection<T extends Record<string, unknown>> {
 
     //@Insert Operations
 
-    private async insert(document: JSONDocument<T>) {
+    /**
+     * @private
+     * @description
+     * Private method to insert a `Document` into the `Collection` and it's physical
+     * storage location
+     *
+     * @param { JSONDocument } document
+     * @returns { Promise<boolean> }
+     */
+
+    private async insert(document: JSONDocument<T>): Promise<boolean> {
         return this.#queue.enqueue(
             new Promise(async (res, rej) => {
                 let content = document.toFile();
@@ -213,10 +301,24 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
-     * Inserts a `Document` into the database.
+     * Method to insert data or a `Document` into the `Collection`. If a `Document` is given
+     * that already exists, the `Document` is upserted.
      *
-     * @param { Record<string, unknown> } data - the data to insert as `Document`
-     * @returns { Promise<Document> } the created Document
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Insert a document
+     * const result = await collection.insertOne({ name: 'Flotsam' });
+     * ```
+     * ---
+     *
+     * @param { Record<string, unknown> } data - the data to insert.
+     * @returns { Promise<Document | false> } the inserted `Document` or false, if the operation failed.
      */
 
     async insertOne(data: T | Document<T>): Promise<Document<T> | false> {
@@ -239,6 +341,28 @@ export class Collection<T extends Record<string, unknown>> {
             })
         );
     }
+
+    /**
+     * @description
+     * Method to insert multiple sets of data or `Documents` into the `Collection`. If any `Document` is given
+     * that already exists, that `Document` is upserted.
+     *
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Insert a document
+     * const result = await collection.insertMany({ name: 'Flotsam' }, {name: 'Jetsam'});
+     * ```
+     * ---
+     *
+     * @param { Record<string, unknown>[] } data - the data to insert.
+     * @returns { Promise<Document | false> } the inserted `Documents` or false, if the operation failed.
+     */
 
     async insertMany(...data: T[]): Promise<Document<T>[] | false> {
         return this.#queue.enqueue(
@@ -269,6 +393,17 @@ export class Collection<T extends Record<string, unknown>> {
 
     // @Delete Operations
 
+    /**
+     * @private
+     * @description
+     * Private method to delete a `Document` from it's physical storage location
+     * as well as from the `Collection`'s cache. The `Document` is identified
+     * by it's id.
+     *
+     * @param { string } id - the given id of the `Document`
+     * @returns { boolean }
+     */
+
     private async delete(id: string): Promise<boolean> {
         return this.#queue.enqueue(
             new Promise(async (res) => {
@@ -282,11 +417,23 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
-     * Method to delete the first found `Document` by a given id. Returns the deleted `Document`
-     * or false, if no `Document` was found.
+     * Collection method to delete a `Document` by it's Id.
      *
-     * @param { string } id - the id to the find the `Document` by.
-     * @returns { Promise<Document | false> } the deleted `Document` or false, if no `Document` was found.
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Find the document with the given Id
+     * const result = await collection.deleteOneById(<id>);
+     * ```
+     * ---
+     *
+     * @param { string } id - the id of the `Document` to delete
+     * @returns {Promise<Document | null>} the first found `Document` or false if the operation failed
      */
 
     async deleteOneById(id: string): Promise<Document<T> | false> {
@@ -314,6 +461,20 @@ export class Collection<T extends Record<string, unknown>> {
      * Method to delete the first found `Document` by a given set of find options. Returns the deleted `Document`
      * or false, if no `Document` was found.
      *
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for the first Document containing a `name` property including 'flotsam'
+     * const result = await collection.deleteOne({ where: {name: Like('flotsam') }});
+     * ```
+     * ---
+     *
      * @param { FindOptions } findOptions - the find options to the find the `Document` by.
      * @returns { Promise<Document | false> } the deleted `Document` or false, if no `Document` was found.
      */
@@ -336,6 +497,33 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
+    /**
+     * @description
+     * Collection method to delete a number of `Documents` according to the given `FindOptions`.
+     *
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for any number of Documents containing a `name` property including 'flotsam'
+     * // and delete them
+     * const result = await collection.deleteMany({ where: {name: Like('flotsam') }});
+     * ```
+     *
+     * The full set of `FindOptions` applies, meaning the results can filtered, limited, skipped and orderer
+     * before executing the delete operation.
+     *
+     * ---
+     *
+     * @param { FindOptions } findOptions - the given FindOptions to select `Documents` by.
+     * @returns { Promise<Document[] | false> } an Array of Documents or false if the operation failed.
+     */
+
     async deleteMany(findOptions: FindOptions<T>): Promise<Document<T>[] | false> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
@@ -355,6 +543,17 @@ export class Collection<T extends Record<string, unknown>> {
     }
 
     //@Find Operations
+
+    /**
+     * @private
+     * @description
+     *
+     * Private method to retrieve a array of `Document` from the collection that satisfy the given
+     * `FindOptions`.
+     *
+     * @param findOptions
+     * @returns
+     */
 
     private async getEntriesByFindOptions(findOptions: FindOptions<T>): Promise<Document<T>[]> {
         return this.#queue.enqueue(
@@ -389,7 +588,20 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
-     * Method to select the first `Document` from the collection that satisfies it's id.
+     * Collection method to select a `Document` by it's Id.
+     *
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Find the document with the given Id
+     * const result = await collection.findOneById(<id>);
+     * ```
+     * ---
      *
      * @param { string } id - the id of the `Document` to select
      * @returns {Promise<Document | null>} the first found `Document` or null if none was found
@@ -417,7 +629,7 @@ export class Collection<T extends Record<string, unknown>> {
      * @description
      * Collection method to select the first `Document` according to the given find options.
      *
-     * -----
+     * ---
      *
      *@example
      * ```ts
@@ -434,6 +646,7 @@ export class Collection<T extends Record<string, unknown>> {
      * @param { FindOptions } findOptions - the given FindOptions to select `Documents` by.
      * @returns { Promise<Document[]> } an Array of Documents.
      */
+
     async findOne(findOptions: FindOptions<T>): Promise<Document<T> | null> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
@@ -605,8 +818,21 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
-     * Method to select the first `Document` from the collection that satisfies it's id
-     * and update it with the given data.
+     * Collection method to select a `Document` from the collection by it's Id and update it with
+     * the newly given Data.
+     *
+     * -----
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Update the document with the given Id
+     * const result = await collection.updateOneById(<id>, { name: 'jetsam' });
+     * ```
+     * ---
      *
      * @param { string } id - the string to find the `Document` by.
      * @param { Record<string, unknown> } data - the data to update the `Document` with.
@@ -637,8 +863,22 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
-     * Method to select the first `Document` from the collection that satisfies a given set
+     * Collection method to select the first `Document` from the collection that satisfies a given set
      * of find options and update it with the given data.
+     *
+     * -----
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Update the first document satisfying the given find options
+     * const result = await collection.updateOne({ where: {name: Like('flotsam') }}, { name: 'jetsam' });
+     * ```
+     * ---
      *
      * @param { FindOptions } findOptions - the find options to find the `Document` by.
      * @param { Record<string, unknown> } data - the data to update the `Document` with.
@@ -667,8 +907,22 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
-     * Method to select the first `Document` from the collection that satisfies a given set
+     * Collection method to select the first `Document` from the collection that satisfies a given set
      * of find simplified options and update it with the given data.
+     *
+     * -----
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Update the first document satisfying the given find options
+     * const result = await collection.updateOneBy({ name: Like('flotsam') }, { name: 'jetsam' });
+     * ```
+     * ---
      *
      * @param { FindByProperty } findOptions - the find options to find the `Document` by.
      * @param { Record<string, unknown> } data - the data to update the `Document` with.
@@ -694,6 +948,35 @@ export class Collection<T extends Record<string, unknown>> {
             })
         );
     }
+
+    /**
+     * @description
+     * Collection method to select a number of `Documents` according to the given find options
+     * and update them with a given set of data.
+     *
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for any number of Documents containing a `name` property including 'flotsam'
+     * // and update them
+     * const result = await collection.updateMany({ where: {name: Like('flotsam') }}, { name: 'jetsam' });
+     * ```
+     *
+     * The full set of `FindOptions` applies, meaning the results can filtered, limited, skipped and orderer
+     * before executing the update operation.
+     *
+     * ---
+     *
+     * @param { FindOptions } findOptions - the given FindOptions to select `Documents` by.
+     * @param { Record<string, unknown> } data - a object containing the data to update.
+     * @returns { Promise<Document[]> } an Array of Documents.
+     */
 
     async updateMany(findOptions: FindOptions<T>, data: Partial<T>): Promise<Document<T>[] | false> {
         return this.#queue.enqueue(

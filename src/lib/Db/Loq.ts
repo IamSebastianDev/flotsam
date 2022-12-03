@@ -7,6 +7,10 @@ import { safeAsyncAbort, __root } from '../../utils';
 import { Flotsam } from './Flotsam';
 import { Queue } from './Queue';
 
+/**
+ * @description
+ * Class used to write logs to the `log` file and `process.stdout`.
+ */
 export class Loq {
     #maxSafeFileSize: number = 157286400;
     #queue: Queue = new Queue();

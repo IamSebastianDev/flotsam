@@ -2,6 +2,10 @@
 import { DocumentInit, Document } from '../../types';
 import { ObjectId } from './ObjectId';
 
+/**
+ * @description
+ * The `JSONDocument` class is used to represent instances of `Documents` inside a `Collection`.
+ */
 export class JSONDocument<T extends Record<string, unknown>> {
     data: T;
     _id: ObjectId;

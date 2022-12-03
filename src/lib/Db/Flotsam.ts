@@ -8,6 +8,29 @@ import { Collection } from './Collection';
 import { Loq } from './Loq';
 import { Queue } from './Queue';
 
+/**
+ * @description
+ * The `Flotsam` class is the main interface for using the database. All operations concerning the
+ * creation or removing of collections happens using a created `Flotsam` instance.
+ *
+ * @example
+ * ```ts
+ * import { Flotsam } from "flotsam/db";
+ *
+ * const db = new Flotsam({
+ *      // the physical location for the stored documents
+ *      root: '.store'
+ * })
+ *
+ * // connect to the database to ensure that the necessary setup
+ * // operations are performed.
+ * await db.connect();
+ *
+ * // creating a typed collection
+ * const collection = await db.collect<{name: string}>('collection')
+ * ```
+ */
+
 export class Flotsam {
     /**
      * @type { string }
@@ -32,16 +55,38 @@ export class Flotsam {
 
     #collections: Record<string, Collection<any>> = {};
 
+    /**
+     * @type { string | undefined }
+     * @description
+     * Optional property to set to enable / disable encrypting the physical
+     * `Documents` stored on disk. When set, the string given is used as key
+     * to encrypt the `Documents`.
+     */
+
     auth?: string;
 
-    quiet?: boolean = true;
+    /**
+     * @type { boolean | undefined }
+     * @description
+     * Optional boolean flag to indicate if log statements should be
+     * suppressed. If set to true, no errors / infos will be written to
+     * `process.stdout`.
+     */
+
+    quiet?: boolean;
+
+    /**
+     * @type { string | undefined }
+     * @description
+     * Optional property to set to write a log file to a physical location.
+     * `quiet` must be set to false, otherwise all logs will be suppressed.
+     * The string given is interpreted as a path from the given root directory.
+     */
 
     log?: string;
 
     #loq: Loq = new Loq(this);
-
     #queue: Queue = new Queue();
-
     #handlers: Record<FlotsamEvent, Array<Subscriber>> = {
         close: [],
         delete: [],
@@ -63,6 +108,11 @@ export class Flotsam {
 
         this.createInitialListeners();
     }
+
+    /**
+     * @description
+     * Method to setup the initial `Flotsam` listeners.
+     */
 
     private createInitialListeners() {
         this.on('error', (error) => {
@@ -165,6 +215,10 @@ export class Flotsam {
      */
 
     async collect<T extends Record<string, unknown>>(namespace: string): Promise<Collection<T>> {
+        if (!this.connected) {
+            this.emit('error', `🐙 \x1b[31m[Flotsam] Attempted collecting before connecting.\x1b[0m`);
+        }
+
         return new Promise(async (res, rej) => {
             return safeAsyncAbort(
                 (error) => this.emit('error', error),
