@@ -2,6 +2,10 @@
 
 import type { QueueTask } from '../../types';
 
+/**
+ * @description
+ * Class used to create a `Queue` to operate async operations in sequence if necessary
+ */
 export class Queue {
     #queue: Array<QueueTask> = [];
     #executing: boolean = false;
