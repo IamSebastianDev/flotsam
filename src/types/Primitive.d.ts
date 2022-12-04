@@ -1,3 +1,3 @@
 /** @format */
 
-type Primitive = 'string' | 'number' | 'object' | 'function' | 'bigint' | 'symbol' | 'undefined' | 'boolean';
+export type Primitive = 'string' | 'number' | 'object' | 'function' | 'bigint' | 'symbol' | 'undefined' | 'boolean';
