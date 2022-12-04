@@ -14,7 +14,9 @@ export {
     RegExp,
     Unsafe,
     NotNull,
-    OfType,
+    IsArray,
+    IsType,
+    IsInt,
 } from './lib';
 export type { Collection, ObjectId, JSONDocument } from './lib';
 export type {
