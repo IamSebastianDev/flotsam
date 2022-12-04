@@ -3,7 +3,7 @@
 import { FlotsamValidationError } from '../../utils';
 import type { Primitive } from '../../types';
 
-export const OfType = (proposedType: Primitive) => {
+export const IsType = (proposedType: Primitive) => {
     return (value: unknown, propertyName: string) => {
         if (typeof value === proposedType) return true;
 
