@@ -17,3 +17,4 @@ export type { ValidatorFunction } from './ValidatorFunction';
 export type { Validator } from './Validator';
 export type { Primitive } from './Primitive';
 export type { ArrayValidatorInit } from './ArrayValidatorInit';
+export type { IntegerValidatorInit } from './IntegerValidatorInit';
