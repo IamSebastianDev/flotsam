@@ -1,9 +1,9 @@
 /** @format */
 
-import { IntegerValidatorInit } from '../../types';
+import { IntegerValidatorInit, ValidatorFunction } from '../../types';
 import { FlotsamValidationError } from '../../utils';
 
-export const IsInt = (init?: IntegerValidatorInit) => {
+export const IsInt = (init?: IntegerValidatorInit): ValidatorFunction => {
     const { min, max } = init || {};
     return (value: unknown, propertyName: string) => {
         if (!Number.isInteger(value) || typeof value !== 'number') {
