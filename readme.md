@@ -118,4 +118,4 @@ appreciated, if you have any questions, feel free to reach out.
 
 ## License
 
-Stræm.js is licensed under the [MIT License](https://opensource.org/licenses/MIT)
+Fløtsam is licensed under the [MIT License](https://opensource.org/licenses/MIT)

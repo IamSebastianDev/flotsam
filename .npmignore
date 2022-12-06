@@ -9,3 +9,5 @@ node_modules
 .prettierrc
 commitlint.config.json
 tsconfig.json
+commitlint.config.json
+tests
