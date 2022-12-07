@@ -263,6 +263,44 @@ test.serial('[Evaluators] RegExp should throw when validating a non string value
  * NotEqual
  */
 
+test.serial('[Evaluators] NotEqual should match two values that are not equal', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { data: NotEqual('test2') } });
+    t.not(result, null);
+    t.is(result?.data, 'test');
+});
+
+test.serial('[Evaluators] NotEqual should not match two values that are equal', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { data: NotEqual('test') } });
+    t.is(result, null);
+    t.not(result?.data, 'test');
+});
+
+test.serial('[Evaluators] NotEqual should throw when accessing a non existing property in strict mode.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    await t.throwsAsync(async () => {
+        ///@ts-expect-error
+        await test.findOne({ where: { data2: NotEqual('test2', { strict: true }) } });
+    });
+});
+
+test.serial('[Evaluators] NotEqual should not throw when accessing a non existing property.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    await t.notThrowsAsync(async () => {
+        ///@ts-expect-error
+        await test.findOne({ where: { data2: Exactly('test2') } });
+    });
+});
+
 /**
  * GreaterThan
  */
