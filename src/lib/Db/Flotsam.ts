@@ -133,7 +133,7 @@ export class Flotsam {
 
         this.on('connect', () => {
             this.connected = true;
-            !this.quiet && console.log(`🐙 \x1b[34m[Flotsam] DB Connected.\x1b[0m`);
+            !this.quiet && console.log(`🐙 \x1b[32m[Flotsam] DB Connected.\x1b[0m`);
         });
 
         this.on('close', () => {
@@ -146,7 +146,7 @@ export class Flotsam {
 
         this.on('close', () => {
             this.connected = false;
-            !this.quiet && console.log(`🐙 \x1b[34m[Flotsam] DB Closed.\x1b[0m`);
+            !this.quiet && console.log(`🐙 \x1b[32m[Flotsam] DB Closed.\x1b[0m`);
         });
     }
 
