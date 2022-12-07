@@ -27,3 +27,5 @@ Fløtsam enables you to provide a **Schema** for your collections to validate ag
 +    }
 + })
 ```
+
+**Validators** are executed in the order in which they were defined and will throw a `FlotsamValidationError` when a incorrect value is inserted.
