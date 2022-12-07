@@ -2,7 +2,7 @@
 
 import test from 'ava';
 import { Flotsam } from '../src';
-import { Exactly, Is, Like, In, Unsafe } from '../src/lib/Evaluators';
+import { Exactly, Is, Like, In, Unsafe, RegExp } from '../src/lib/Evaluators';
 
 // Setup the test by creating a new Database instance and populate it with
 // a Collection and a Document
@@ -234,6 +234,30 @@ test.serial('[Evaluators] Unsafe should not throw when accessing a non existing 
 /**
  * RegExp
  */
+
+test.serial('[Evaluators] RegExp should succeed when passed a correct regexp', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    let result = await test.findOne({ where: { data: RegExp(/[a-z]/) } });
+    t.not(result, null);
+    t.is(result?.data, 'test');
+});
+
+test.serial('[Evaluators] RegExp should fail when passed a non matching regexp', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    let result = await test.findOne({ where: { data: RegExp(/[A-Z]/) } });
+    t.is(result, null);
+});
+
+test.serial('[Evaluators] RegExp should throw when validating a non string value', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    await t.throwsAsync(async () => await test.findOne({ where: { number: RegExp(/[0-9]/) } }));
+});
 
 /**
  * NotEqual
