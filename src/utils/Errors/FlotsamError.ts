@@ -8,7 +8,7 @@ export class FlotsamError extends Error {
     }
 
     static is(error: unknown): error is FlotsamError {
-        return error instanceof FlotsamError && !error.reported;
+        return error instanceof FlotsamError;
     }
 
     static current(error: unknown) {
