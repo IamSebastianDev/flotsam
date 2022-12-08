@@ -803,7 +803,10 @@ export class Collection<T extends Record<string, unknown>> {
     private async update(document: Document<T>, data: Partial<T>): Promise<Document<T>> {
         return this.#queue.enqueue(
             new Promise(async (res, rej) => {
-                const updated = new JSONDocument({ _id: document.id, _: { ...document, ...data } });
+                    const updated = new JSONDocument(
+                        { _id: document.id, _: { ...document, ...data } },
+                        this.validationStrategy
+                    );
 
                 let content = updated.toFile();
                 if (this.#crypt) content = this.#crypt.encrypt(content);
