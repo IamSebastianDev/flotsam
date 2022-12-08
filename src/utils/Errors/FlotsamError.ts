@@ -7,7 +7,11 @@ export class FlotsamError extends Error {
         super(message);
     }
 
-    static validate(error: unknown): error is FlotsamError {
+    static is(error: unknown): error is FlotsamError {
+        return error instanceof FlotsamError && !error.reported;
+    }
+
+    static current(error: unknown) {
         return error instanceof FlotsamError && !error.reported;
     }
 }

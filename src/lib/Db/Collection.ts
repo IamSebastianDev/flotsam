@@ -142,11 +142,13 @@ export class Collection<T extends Record<string, unknown>> {
 
     private rejector(reject: Rejector): Rejector {
         return (error: unknown) => {
-            if (!FlotsamError.validate(error)) {
-                return;
-            }
+            if (FlotsamError.is(error)) {
+                if (!FlotsamError.current(error)) {
+                    return;
+                }
 
-            error.reported = true;
+                error.reported = true;
+            }
 
             this.ctx.emit('error', (error as Error).message);
             reject(error);
