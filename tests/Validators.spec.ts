@@ -127,35 +127,44 @@ test('[Validators] IsArray correctly validates an Array of a item with a certain
 
 test('[Validators] IsType correctly validates a String', (t) => {
     const value = 'string';
-    const validator = IsType('string');
+    const validator = IsType({ type: 'string' });
 
     t.is(validator(value, 'test-property'), true);
 });
 
 test('[Validators] IsType correctly validates a Number', (t) => {
     const value = 10;
-    const validator = IsType('number');
+    const validator = IsType({ type: 'number' });
 
     t.is(validator(value, 'test-property'), true);
 });
 
 test('[Validators] IsType correctly validates a Boolean', (t) => {
     const value = true;
-    const validator = IsType('boolean');
+    const validator = IsType({ type: 'boolean' });
 
     t.is(validator(value, 'test-property'), true);
 });
 
 test('[Validators] IsType correctly validates a Object', (t) => {
     const value = {};
-    const validator = IsType('object');
+    const validator = IsType({ type: 'object' });
 
     t.is(validator(value, 'test-property'), true);
 });
 
 test('[Validators] IsType correctly throws when receiving a incorrect type', (t) => {
     const value = 0;
-    const validator = IsType('boolean');
+    const validator = IsType({ type: 'boolean' });
 
     t.throws(() => validator(value, 'test-property'));
+});
+
+test('[Validators] IsType correctly validates a complex type', (t) => {
+    const values = ['a', 'b', 'c'];
+    const value = 'b';
+
+    const validator = IsType({ type: (value: unknown) => values.includes(<string>value) });
+
+    t.is(validator(value, 'test-property'), true);
 });
