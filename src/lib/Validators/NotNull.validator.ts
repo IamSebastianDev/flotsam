@@ -9,7 +9,6 @@ import { FlotsamValidationError } from '../../utils';
  * Evaluator Function to validate a Value to be not Null or Undefined.
  *
  * -----
- *
  *@example
  * ```ts
  * import { Flotsam } from "flotsam/db";
@@ -22,7 +21,7 @@ import { FlotsamValidationError } from '../../utils';
  * });
  *
  * ```
- * ---
+ * -----
  *
  * @param { unknown } value - the value to validate
  * @param { string } propertyName - the name of the property that is validated

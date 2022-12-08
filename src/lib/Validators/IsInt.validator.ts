@@ -9,7 +9,6 @@ import { FlotsamValidationError } from '../../utils';
  * an optional object to configure the Validator to check for a minimum and/or maximum value.
  *
  * -----
- *
  *@example
  * ```ts
  * import { Flotsam } from "flotsam/db";
@@ -22,14 +21,14 @@ import { FlotsamValidationError } from '../../utils';
  * });
  *
  * ```
- * ---
+ * -----
  *
- * @param { IntegerValidatorInit } init
+ * @param { IntegerValidatorInit } [validationRules]
  * @returns { ValidatorFunction } a ValidatorFunction to validate Integers
  */
 
-export const IsInt = (init?: IntegerValidatorInit): ValidatorFunction => {
-    const { min, max } = init || {};
+export const IsInt = (validationRules?: IntegerValidatorInit): ValidatorFunction => {
+    const { min, max } = validationRules || {};
     return (value: unknown, propertyName: string) => {
         if (!Number.isInteger(value) || typeof value !== 'number') {
             throw new FlotsamValidationError(`Expected property '${propertyName}' to be an Integer.`);

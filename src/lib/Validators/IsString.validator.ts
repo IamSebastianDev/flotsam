@@ -9,7 +9,6 @@ import { FlotsamValidationError } from '../../utils';
  * Evaluator Function to validate a Value to be of type string.
  *
  * -----
- *
  *@example
  * ```ts
  * import { Flotsam } from "flotsam/db";
@@ -17,12 +16,12 @@ import { FlotsamValidationError } from '../../utils';
  *
  * const collection = await db.collect<{ name: string }>('collection', {
  *      validate: {
- *          name: [IsType('string')]
+ *          name: [NotNull, IsString]
  *      }
  * });
  *
  * ```
- * ---
+ * -----
  *
  * @param { unknown } value - the value to validate
  * @param { string } propertyName - the name of the property that is validated

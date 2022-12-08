@@ -3,8 +3,32 @@
 import { TextValidatorInit, ValidatorFunction } from '../../types';
 import { FlotsamValidationError } from '../../utils';
 
-export const IsText = (init?: TextValidatorInit): ValidatorFunction => {
-    const { min, max } = init || {};
+/**
+ * @description
+ * Validator to check a given value to be inserted or updated for being a text. The value can receive
+ * an optional object to configure the Validator to check for a minimum and/or maximum length.
+ *
+ * -----
+ *@example
+ * ```ts
+ * import { Flotsam } from "flotsam/db";
+ * import { NotNull, IsText } from "flotsam/validators";
+ *
+ * const collection = await db.collect<{ description: string }>('collection', {
+ *      validate: {
+ *          age: [NotNull, IsText({ min: 200 })]
+ *      }
+ * });
+ *
+ * ```
+ * -----
+ *
+ * @param { TextValidatorInit } [validationRules]
+ * @returns { ValidatorFunction } a ValidatorFunction to validate Integers
+ */
+
+export const IsText = (validationRules?: TextValidatorInit): ValidatorFunction => {
+    const { min, max } = validationRules || {};
     return (value: unknown, propertyName: string) => {
         if (typeof value !== 'string') {
             throw new FlotsamValidationError(`Expected property '${propertyName}' to be a String.`);
