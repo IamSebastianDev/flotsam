@@ -1,9 +1,9 @@
 /** @format */
 
-import { __root, safeAsyncAbort, isTruthy, sortByProperty, isDocument } from '../../utils';
+import { __root, safeAsyncAbort, isTruthy, sortByProperty, isDocument, FlotsamValidationError } from '../../utils';
 import { Flotsam } from './Flotsam';
 import { readdir, mkdir, rm, readFile, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, unwatchFile } from 'node:fs';
 import { ObjectId } from './ObjectId';
 import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
@@ -11,6 +11,7 @@ import { Queue } from './Queue';
 import type { Document, Rejector, FindOptions, FindByProperty, DocumentInit, Validator } from '../../types';
 import { evaluateFindOptions } from './evaluateFindOptions';
 import { Crypto } from './Crypto';
+import { FlotsamError } from '../../utils/Errors/FlotsamError';
 
 /**
  * @Class
@@ -141,6 +142,12 @@ export class Collection<T extends Record<string, unknown>> {
 
     private rejector(reject: Rejector): Rejector {
         return (error: unknown) => {
+            if (!FlotsamError.validate(error)) {
+                return;
+            }
+
+            error.reported = true;
+
             this.ctx.emit('error', (error as Error).message);
             reject(error);
         };
@@ -803,18 +810,20 @@ export class Collection<T extends Record<string, unknown>> {
     private async update(document: Document<T>, data: Partial<T>): Promise<Document<T>> {
         return this.#queue.enqueue(
             new Promise(async (res, rej) => {
+                safeAsyncAbort(this.rejector(rej), async () => {
                     const updated = new JSONDocument(
                         { _id: document.id, _: { ...document, ...data } },
                         this.validationStrategy
                     );
 
-                let content = updated.toFile();
-                if (this.#crypt) content = this.#crypt.encrypt(content);
+                    let content = updated.toFile();
+                    if (this.#crypt) content = this.#crypt.encrypt(content);
 
-                await writeFile(resolve(this.#dir, document.id), content, 'utf8');
-                this.#documents.set(document.id, updated);
+                    await writeFile(resolve(this.#dir, document.id), content, 'utf8');
+                    this.#documents.set(document.id, updated);
 
-                return res(updated.toDoc());
+                    return res(updated.toDoc());
+                });
             })
         );
     }
