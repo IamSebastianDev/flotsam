@@ -6,7 +6,7 @@ import { FlotsamValidationError } from '../../utils';
 /**
  * @throws
  * @description
- * Evaluator Function to validate a Value to be not Null or Undefined.
+ * Evaluator Function to validate a Value to be of type string.
  *
  * -----
  *@example
@@ -16,7 +16,7 @@ import { FlotsamValidationError } from '../../utils';
  *
  * const collection = await db.collect<{ name: string }>('collection', {
  *      validate: {
- *          name: [NotNull, IsType('string')]
+ *          name: [NotNull, IsString]
  *      }
  * });
  *
@@ -28,8 +28,8 @@ import { FlotsamValidationError } from '../../utils';
  * @returns { boolean } true if the property was successfully validated
  */
 
-export const NotNull: ValidatorFunction = (value: unknown, propertyName: string): boolean => {
-    if (value !== null && value !== undefined) return true;
+export const IsString: ValidatorFunction = (value: unknown, propertyName: string): boolean => {
+    if (typeof value === 'string') return true;
 
-    throw new FlotsamValidationError(`Property '${propertyName}' can not be NULL.`);
+    throw new FlotsamValidationError(`Property '${propertyName}' must be of type 'string'`);
 };

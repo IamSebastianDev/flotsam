@@ -3,6 +3,31 @@
 import { ArrayValidatorInit, ValidatorFunction } from '../../types';
 import { FlotsamValidationError } from '../../utils';
 
+/**
+ * @description
+ * Validator to check a given value to be inserted or updated for being an Array. The value can receive
+ * an optional object to configure the Validator to check for a minimum and/or maximum length as well as
+ * check the Array items for being of a certain type.
+ *
+ * -----
+ *@example
+ * ```ts
+ * import { Flotsam } from "flotsam/db";
+ * import { NotNull, IsArray } from "flotsam/validators";
+ *
+ * const collection = await db.collect<{ books: string[] }>('collection', {
+ *      validate: {
+ *          books: [NotNull, IsArray({ min: 0, items: "string" })]
+ *      }
+ * });
+ *
+ * ```
+ * -----
+ *
+ * @param { ArrayValidatorInit } [validationRules]
+ * @returns { ValidatorFunction } a ValidatorFunction to validate Arrays
+ */
+
 export const IsArray = (validationRules?: ArrayValidatorInit): ValidatorFunction => {
     const { min, max, items } = validationRules || {};
     return (value: unknown, propertyName: string) => {
