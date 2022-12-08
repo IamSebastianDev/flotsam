@@ -3,6 +3,31 @@
 import { IntegerValidatorInit, ValidatorFunction } from '../../types';
 import { FlotsamValidationError } from '../../utils';
 
+/**
+ * @description
+ * Validator to check a given value to be inserted or updated for being an Integer. The value can receive
+ * an optional object to configure the Validator to check for a minimum and/or maximum value.
+ *
+ * -----
+ *
+ *@example
+ * ```ts
+ * import { Flotsam } from "flotsam/db";
+ * import { NotNull, IsInt } from "flotsam/validators";
+ *
+ * const collection = await db.collect<{ age: number }>('collection', {
+ *      validate: {
+ *          age: [NotNull, IsInt({ min: 6, max: 99 })]
+ *      }
+ * });
+ *
+ * ```
+ * ---
+ *
+ * @param { IntegerValidatorInit } init
+ * @returns { ValidatorFunction } a ValidatorFunction to validate Integers
+ */
+
 export const IsInt = (init?: IntegerValidatorInit): ValidatorFunction => {
     const { min, max } = init || {};
     return (value: unknown, propertyName: string) => {
