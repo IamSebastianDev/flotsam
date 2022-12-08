@@ -19,3 +19,4 @@ export type { Primitive } from './Primitive';
 export type { ArrayValidatorInit } from './ArrayValidatorInit';
 export type { IntegerValidatorInit } from './IntegerValidatorInit';
 export type { TextValidatorInit } from './TextValidatorInit';
+export type { TypeValidatorInit } from './TypeValidatorInit';
