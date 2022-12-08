@@ -18,6 +18,7 @@ export {
     IsType,
     IsInt,
     IsText,
+    IsNumber,
 } from './lib';
 export type { Collection, ObjectId, JSONDocument } from './lib';
 export type {
