@@ -1,7 +1,7 @@
 /** @format */
 
 import test from 'ava';
-import { IsText, IsInt, NotNull, IsArray, IsType } from '../src/lib/Validators';
+import { IsText, IsInt, NotNull, IsArray, IsType, IsNumber, IsString } from '../src/lib/Validators';
 
 // IsText
 
@@ -167,4 +167,36 @@ test('[Validators] IsType correctly validates a complex type', (t) => {
     const validator = IsType({ type: (value: unknown) => values.includes(<string>value) });
 
     t.is(validator(value, 'test-property'), true);
+});
+
+// IsString
+
+test('[Validators] IsString correctly validates a String', (t) => {
+    const value = 'string';
+    const validator = IsString;
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsString correctly validates a non String', (t) => {
+    const value = 0;
+    const validator = IsString;
+
+    t.throws(() => validator(value, 'test-property'));
+});
+
+// IsNumber
+
+test('[Validators] IsNumber correctly validates a Number', (t) => {
+    const value = 31415;
+    const validator = IsNumber;
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsString correctly validates a non Number', (t) => {
+    const value = 'test';
+    const validator = IsNumber;
+
+    t.throws(() => validator(value, 'test-property'));
 });
