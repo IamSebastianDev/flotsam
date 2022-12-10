@@ -34,9 +34,9 @@ export class Loq {
                     }
 
                     const { size } = await stat(destination);
-                    let lines = (await readFile(destination, 'utf-8')).split('\n');
 
                     if (size > this.#maxSafeFileSize) {
+                        let lines = (await readFile(destination, 'utf-8')).split('\n');
                         lines = lines.filter((_, i) => i > 100);
                         await writeFile(destination, lines.join('\n'), 'utf-8');
                     }

@@ -2,8 +2,8 @@
 
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { safeAsyncAbort, __root } from '../../utils';
-import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler } from '../../types';
+import { __root } from '../../utils';
+import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler, Validator } from '../../types';
 import { Collection } from './Collection';
 import { Loq } from './Loq';
 import { Queue } from './Queue';
@@ -107,6 +107,12 @@ export class Flotsam {
         this.log = init.log;
 
         this.createInitialListeners();
+
+        process.on('uncaughtException', (error) => {
+            this.close().then(() => {
+                process.exit(1);
+            });
+        });
     }
 
     /**
@@ -214,23 +220,20 @@ export class Flotsam {
      * previously.
      */
 
-    async collect<T extends Record<string, unknown>>(namespace: string): Promise<Collection<T>> {
+    async collect<T extends Record<string, unknown>>(
+        namespace: string,
+        validationStrategy?: Validator<T>
+    ): Promise<Collection<T>> {
         if (!this.connected) {
             this.emit('error', `🐙 \x1b[31m[Flotsam] Attempted collecting before connecting.\x1b[0m`);
         }
 
-        return new Promise(async (res, rej) => {
-            return safeAsyncAbort(
-                (error) => this.emit('error', error),
-                async () => {
-                    if (!this.#collections[namespace]) {
-                        this.#collections[namespace] = new Collection<T>(this, namespace);
-                        await this.#collections[namespace].deserialize();
-                    }
-                    res(this.#collections[namespace]);
-                }
-            );
-        });
+        if (!this.#collections[namespace]) {
+            this.#collections[namespace] = new Collection<T>(this, namespace, validationStrategy);
+            await this.#collections[namespace].deserialize();
+        }
+
+        return this.#collections[namespace];
     }
 
     /**

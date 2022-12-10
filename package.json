@@ -14,6 +14,11 @@
       "import": "./dist/evaluators/index.mjs",
       "require": "./dist/evaluators/index.js",
       "types": "./dist/types/evaluators.d.ts"
+    },
+    "./validators": {
+      "import": "./dist/validators/index.mjs",
+      "require": "./dist/validators/index.js",
+      "types": "./dist/types/validators.d.ts"
     }
   },
   "typesVersions": {
@@ -23,6 +28,9 @@
       ],
       "evaluators": [
         "dist/types/evaluators.d.ts"
+      ],
+      "validators": [
+        "dist/types/validators.d.ts"
       ]
     }
   },

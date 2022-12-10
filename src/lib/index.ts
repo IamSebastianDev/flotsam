@@ -14,3 +14,4 @@ export {
     RegExp,
     Unsafe,
 } from './Evaluators';
+export { NotNull, IsType, IsArray, IsInt, IsText, IsNumber, IsDate } from './Validators';

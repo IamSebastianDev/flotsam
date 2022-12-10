@@ -13,6 +13,13 @@ export {
     NotEqual,
     RegExp,
     Unsafe,
+    NotNull,
+    IsArray,
+    IsType,
+    IsInt,
+    IsText,
+    IsNumber,
+    IsDate,
 } from './lib';
 export type { Collection, ObjectId, JSONDocument } from './lib';
 export type {
@@ -29,4 +36,6 @@ export type {
     EvaluatorOptions,
     FindByProperty,
     FindOptions,
+    Validator,
+    ValidatorFunction,
 } from './types';
