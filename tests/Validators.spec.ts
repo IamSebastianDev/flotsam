@@ -1,7 +1,7 @@
 /** @format */
 
 import test from 'ava';
-import { IsText, IsInt, NotNull, IsArray, IsType, IsNumber, IsString } from '../src/lib/Validators';
+import { IsText, IsInt, NotNull, IsArray, IsType, IsNumber, IsString, IsDate } from '../src/lib/Validators';
 
 // IsText
 
@@ -197,6 +197,29 @@ test('[Validators] IsNumber correctly validates a Number', (t) => {
 test('[Validators] IsString correctly validates a non Number', (t) => {
     const value = 'test';
     const validator = IsNumber;
+
+    t.throws(() => validator(value, 'test-property'));
+});
+
+// IsDate
+
+test('[Validators] IsDate correctly validates a Date Object', (t) => {
+    const value = new Date();
+    const validator = IsDate;
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsDate correctly validates a Date String', (t) => {
+    const value = '2022-12-10T18:55:09.374Z';
+    const validator = IsDate;
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsDate correctly validates a value that does not represent a Date', (t) => {
+    const value = 'test';
+    const validator = IsDate;
 
     t.throws(() => validator(value, 'test-property'));
 });
