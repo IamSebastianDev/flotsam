@@ -4,6 +4,13 @@
 
 **Validators** are functions used to describe rules that need to be matched when inserting or updating the properties of a **Document**. **Validators** can be combined to check a property for multiple different conditions.
 
+## API
+
+**`Validator Function`**
+Type: `(value: unknown, propertyName?: string, document?: Record<string, unknown>) => boolean`
+
+The Validator Function is used to validate a inserted value against a set of conditions. The function receives the `value` to check as the first argument. The name of the property being evaluated as well as the Document being evaluated are passed as optional Parameters. The function should return true if evaluating correctly and throw a `FlotsamValidationError` when evaluating incorrectly.
+
 ## Available Validators
 
 -   [NotNull](./NotNull.validator.md) to validate a value to be not null
@@ -13,10 +20,14 @@
 -   [IsText](./IsText.validator.md) to validate texts
 -   [IsInt](./IsInt.validator.md) to validate a value to be an integer
 -   [IsArray](./IsArray.validator.md) to validate a value to be an array
+-   [IsDate](./IsDate.validator.md) to validate a value to be a Date
 
 ## Using a Validator
 
-**Validators** are added in a Validation Scheme to a **Collection** when the **Collection** is created.
+**Validators** are added in a Validation Scheme to a **Collection** when the **Collection** is created. **Fløtsam** comes with two different kind of Validators, static and configurable.
+
+-   Static Validators are Validator Functions, that validate a value to match a specific condition.
+-   Configurable Validators are Functions, that create a Validator Function from a given set of options.
 
 ```ts
 import { Flotsam } from 'flotsam/db';
@@ -34,8 +45,8 @@ type Book = {
 // inserted or update are correct
 const books = await db.collect<Book>('books', {
     validate: {
-        title: [NotNull, IsString],
-        description: [NotNull, IsText({ min: 80 })],
+        title: [NotNull, IsString], // NotNull and IsString are both static Validators
+        description: [NotNull, IsText({ min: 80 })], // IsText is a configurable Validator
     },
 });
 ```
