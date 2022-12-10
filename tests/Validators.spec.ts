@@ -123,6 +123,23 @@ test('[Validators] IsArray correctly validates an Array of a item with a certain
     t.throws(() => validator(value, 'test-property'));
 });
 
+test('[Validators] IsArray correctly validates an Array using Validator Functions', (t) => {
+    const value = [
+        [1, 2],
+        [1, 2],
+    ];
+    const validator = IsArray({ items: [IsArray({ items: [IsInt()] })] });
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsArray correctly validates an Array of a item with a certain type, that does not fulfil the type condition using Evaluator Functions', (t) => {
+    const value = new Array(10).fill(0);
+    const validator = IsArray({ items: [IsString] });
+
+    t.throws(() => validator(value, 'test-property'));
+});
+
 // IsType
 
 test('[Validators] IsType correctly validates a String', (t) => {
