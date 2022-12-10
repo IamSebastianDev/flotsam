@@ -7,17 +7,18 @@ import { FlotsamValidationError } from '../../utils';
  * @description
  * Validator to check a given value to be inserted or updated for being an Array. The value can receive
  * an optional object to configure the Validator to check for a minimum and/or maximum length as well as
- * check the Array items for being of a certain type.
+ * check the Array items for being of a certain type. The type can be set using a string or a
+ * Validator Function or Array of Validator Functions.
  *
  * -----
  *@example
  * ```ts
  * import { Flotsam } from "flotsam/db";
- * import { NotNull, IsArray } from "flotsam/validators";
+ * import { NotNull, IsArray, IsString } from "flotsam/validators";
  *
  * const collection = await db.collect<{ books: string[] }>('collection', {
  *      validate: {
- *          books: [NotNull, IsArray({ min: 0, items: "string" })]
+ *          books: [NotNull, IsArray({ min: 0, items: [NotNull, IsString]})]
  *      }
  * });
  *
@@ -30,7 +31,7 @@ import { FlotsamValidationError } from '../../utils';
 
 export const IsArray = (validationRules?: ArrayValidatorInit): ValidatorFunction => {
     const { min, max, items } = validationRules || {};
-    return (value: unknown, propertyName?: string) => {
+    return <T, K>(value: unknown, propertyName?: string, document?: K) => {
         // skip null or undefined values by default
         if (value === null || value === undefined) {
             return true;
@@ -56,9 +57,15 @@ export const IsArray = (validationRules?: ArrayValidatorInit): ValidatorFunction
             );
         }
 
-        if (items && !value.every((item) => typeof item === items)) {
+        if (items && typeof items === 'string' && !value.every((item) => typeof item !== items)) {
             throw new FlotsamValidationError(
                 `Expected property '${propertyName}' to contain only elements of type '${items}'.`
+            );
+        }
+
+        if (items && typeof items !== 'string' && Array.isArray([items].flat())) {
+            return value.every((entry, index) =>
+                [items].flat().every((validator) => validator(entry, `${propertyName}[${index}]`), document)
             );
         }
 
