@@ -19,7 +19,25 @@
 **Validators** are added in a Validation Scheme to a **Collection** when the **Collection** is created.
 
 ```ts
+import { Flotsam } from 'flotsam/db';
+import { NotNull, IsString, IsText } from 'flotsam/validators';
 
+const db = new Flotsam({ root: '.store' });
+await db.connect();
+
+type Book = {
+    title: string;
+    description: string;
+};
+
+// Validate the collection to ensure that values
+// inserted or update are correct
+const books = await db.collect<Book>('books', {
+    validate: {
+        title: [NotNull, IsString],
+        description: [NotNull, IsText({ min: 80 })],
+    },
+});
 ```
 
 ## Creating and using a custom Validator Function
@@ -42,7 +60,7 @@ export const IsAuthor = (authors: string[]): ValidatorFunction => {
             return true;
         }
 
-        throw new FlotsamValidationError(`Property ${propertyName} is expected be included in datatype 'Authors'.`);
+        throw new FlotsamValidationError(`Property ${propertyName} is expected be included in type 'Authors'.`);
     };
 };
 ```
@@ -50,8 +68,9 @@ export const IsAuthor = (authors: string[]): ValidatorFunction => {
 The created **Validator Function** can be used like any other Evaluator.
 
 ```ts
-import { Flotsam, FlotsamValidationError } from 'flotsam/db';
-import { NotNull, IsString, IsType } from 'flotsam/validators';
+// main.ts
+import { Flotsam } from 'flotsam/db';
+import { NotNull, IsString, IsDate } from 'flotsam/validators';
 import { IsAuthor } from './IsAuthor.validator';
 
 const db = new Flotsam({ root: '.store' });
