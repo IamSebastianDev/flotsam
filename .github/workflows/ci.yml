@@ -13,10 +13,8 @@ jobs:
   ci:
     strategy:
       matrix:
-        # run 2 copies of the current job in parallel
-        # and they will load balance all specs
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        node-version: [14.x, 16.x, 18.x]
+        node-version: [16.x, 18.x]
     runs-on: ${{matrix.os}} 
     steps:
       - uses: actions/checkout@v3
