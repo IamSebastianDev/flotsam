@@ -30,7 +30,12 @@ import { FlotsamValidationError } from '../../utils';
 
 export const IsArray = (validationRules?: ArrayValidatorInit): ValidatorFunction => {
     const { min, max, items } = validationRules || {};
-    return (value: unknown, propertyName: string) => {
+    return (value: unknown, propertyName?: string) => {
+        // skip null or undefined values by default
+        if (value === null || value === undefined) {
+            return true;
+        }
+
         if (!Array.isArray(value)) {
             throw new FlotsamValidationError(
                 `Expected property '${propertyName}' to be of type 'Array'. Found property to be of type '${typeof value}' instead.`
