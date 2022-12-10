@@ -1,7 +1,8 @@
 {
   "name": "flotsamjs",
   "version": "1.0.0",
-  "description": "a lightweight, dependency document based json database",
+  "description": "A lightweight, dependency free, in memory storage,json document based database.",
+  "keywords": ["typescript", "in memory", "depenendy free", "storage", "database", "json document", "lightweight"],
   "type": "module",
   "exports": {
     "./db": {
