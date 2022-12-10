@@ -20,6 +20,7 @@ export {
     IsText,
     IsNumber,
     IsDate,
+    ValidateNested,
     IsString,
 } from './lib';
 export type { Collection, ObjectId, JSONDocument } from './lib';

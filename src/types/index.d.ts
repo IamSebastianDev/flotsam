@@ -20,3 +20,4 @@ export type { ArrayValidatorInit } from './ArrayValidatorInit';
 export type { IntegerValidatorInit } from './IntegerValidatorInit';
 export type { TextValidatorInit } from './TextValidatorInit';
 export type { TypeValidatorInit } from './TypeValidatorInit';
+export type { ValidationStrategy } from './ValidationStrategy';

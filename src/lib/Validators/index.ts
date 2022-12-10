@@ -9,3 +9,4 @@ export { IsText } from './IsText.validator';
 export { IsNumber } from './IsNumber.validator';
 export { IsString } from './IsString.validator';
 export { IsDate } from './IsDate.validator';
+export { ValidateNested } from './ValidateNested';
