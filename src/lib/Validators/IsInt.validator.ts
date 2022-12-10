@@ -29,7 +29,12 @@ import { FlotsamValidationError } from '../../utils';
 
 export const IsInt = (validationRules?: IntegerValidatorInit): ValidatorFunction => {
     const { min, max } = validationRules || {};
-    return (value: unknown, propertyName: string) => {
+    return (value: unknown, propertyName?: string) => {
+        // skip null or undefined values by default
+        if (value === null || value === undefined) {
+            return true;
+        }
+
         if (!Number.isInteger(value) || typeof value !== 'number') {
             throw new FlotsamValidationError(`Expected property '${propertyName}' to be an Integer.`);
         }

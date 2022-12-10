@@ -28,7 +28,7 @@ import { FlotsamValidationError } from '../../utils';
  * @returns { boolean } true if the property was successfully validated
  */
 
-export const NotNull: ValidatorFunction = (value: unknown, propertyName: string): boolean => {
+export const NotNull: ValidatorFunction = (value: unknown, propertyName?: string): boolean => {
     if (value !== null && value !== undefined) return true;
 
     throw new FlotsamValidationError(`Property '${propertyName}' can not be NULL.`);

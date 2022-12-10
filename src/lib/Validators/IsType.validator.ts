@@ -43,7 +43,12 @@ const isPrimitive = (value: unknown): value is Primitive => {
 
 export const IsType = (validationRules: TypeValidatorInit): ValidatorFunction => {
     const { type } = validationRules;
-    return (value: unknown, propertyName: string) => {
+    return (value: unknown, propertyName?: string) => {
+        // skip null or undefined values by default
+        if (value === null || value === undefined) {
+            return true;
+        }
+
         if (typeof type === 'function') {
             if (type(value, propertyName)) {
                 return true;
