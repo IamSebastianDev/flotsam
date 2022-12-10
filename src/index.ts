@@ -19,6 +19,7 @@ export {
     IsInt,
     IsText,
     IsNumber,
+    IsDate,
 } from './lib';
 export type { Collection, ObjectId, JSONDocument } from './lib';
 export type {
