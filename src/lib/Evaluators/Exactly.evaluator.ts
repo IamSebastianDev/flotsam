@@ -5,7 +5,7 @@ import { FlotsamEvaluationError, isNonNull } from '../../utils';
 
 /**
  * @description
- * Evaluator Function to compare to given values for being a exact match. `Exactly` will compare type and value to be
+ * Evaluator Function to compare two given values for being a exact match. `Exactly` will compare type and value to be
  * strictly equal using the `===` operator. The second parameter is an optional object that can set the function to be
  * strict. In strict mode, null or undefined will throw an error instead of evaluating to false, if null is not
  * the given search value.
