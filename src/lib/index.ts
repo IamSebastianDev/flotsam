@@ -13,5 +13,6 @@ export {
     NotEqual,
     RegExp,
     Unsafe,
+    Contains,
 } from './Evaluators';
 export { NotNull, IsType, IsArray, IsInt, IsText, IsNumber, IsDate, ValidateNested } from './Validators';

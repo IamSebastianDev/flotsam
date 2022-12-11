@@ -21,6 +21,7 @@ export {
     IsNumber,
     IsDate,
     ValidateNested,
+    Contains,
 } from './lib';
 export type { Collection, ObjectId, JSONDocument } from './lib';
 export type {
