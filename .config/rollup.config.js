@@ -9,13 +9,13 @@ import pkg from '../package.json' assert { type: 'json' };
 
 const bundle = (config) => ({
     plugins: [commonjs(), resolve(), esbuild(), cleanup({ extensions: ['ts'] })],
-    external: (id) => !/^[./]/.test(id),
+    external: Object.keys(pkg.dependencies || {}),
     ...config,
 });
 
 const types = (config) => ({
     plugins: [resolve(), commonjs(), cleanup({ extensions: ['.ts'] }), dts()],
-    external: (id) => !/^[./]/.test(id),
+    external: Object.keys(pkg.dependencies || {}),
     ...config,
 });
 
