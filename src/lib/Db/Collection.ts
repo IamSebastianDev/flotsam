@@ -144,6 +144,9 @@ export class Collection<T extends Record<string, unknown>> {
         return (error: unknown) => {
             if (FlotsamError.is(error)) {
                 if (!FlotsamError.current(error)) {
+                    if (error.rethrows) {
+                        reject(error);
+                    }
                     return;
                 }
 
