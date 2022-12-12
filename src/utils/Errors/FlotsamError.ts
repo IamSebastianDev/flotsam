@@ -2,6 +2,7 @@
 
 export class FlotsamError extends Error {
     public reported: boolean = false;
+    public rethrows: boolean = false;
 
     constructor(message: string) {
         super(message);

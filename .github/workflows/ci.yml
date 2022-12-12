@@ -11,13 +11,17 @@ on:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
+        node-version: [16.x, 18.x]
+    runs-on: ${{matrix.os}} 
     steps:
       - uses: actions/checkout@v3
-      - name: CI checkout
+      - name: CI checkout Node.v-${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: ${{ matrix.node-version }}
           cache: "npm"
       - name: CI setup
         run: yarn ci

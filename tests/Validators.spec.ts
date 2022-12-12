@@ -1,7 +1,17 @@
 /** @format */
 
 import test from 'ava';
-import { IsText, IsInt, NotNull, IsArray, IsType, IsNumber, IsString } from '../src/lib/Validators';
+import {
+    IsText,
+    IsInt,
+    NotNull,
+    IsArray,
+    IsType,
+    IsNumber,
+    IsString,
+    IsDate,
+    ValidateNested,
+} from '../src/lib/Validators';
 
 // IsText
 
@@ -123,6 +133,23 @@ test('[Validators] IsArray correctly validates an Array of a item with a certain
     t.throws(() => validator(value, 'test-property'));
 });
 
+test('[Validators] IsArray correctly validates an Array using Validator Functions', (t) => {
+    const value = [
+        [1, 2],
+        [1, 2],
+    ];
+    const validator = IsArray({ items: [IsArray({ items: [IsInt()] })] });
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsArray correctly validates an Array of a item with a certain type, that does not fulfil the type condition using Evaluator Functions', (t) => {
+    const value = new Array(10).fill(0);
+    const validator = IsArray({ items: [IsString] });
+
+    t.throws(() => validator(value, 'test-property'));
+});
+
 // IsType
 
 test('[Validators] IsType correctly validates a String', (t) => {
@@ -197,6 +224,59 @@ test('[Validators] IsNumber correctly validates a Number', (t) => {
 test('[Validators] IsString correctly validates a non Number', (t) => {
     const value = 'test';
     const validator = IsNumber;
+
+    t.throws(() => validator(value, 'test-property'));
+});
+
+// IsDate
+
+test('[Validators] IsDate correctly validates a Date Object', (t) => {
+    const value = new Date();
+    const validator = IsDate;
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsDate correctly validates a Date String', (t) => {
+    const value = '2022-12-10T18:55:09.374Z';
+    const validator = IsDate;
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsDate correctly validates a value that does not represent a Date', (t) => {
+    const value = 'test';
+    const validator = IsDate;
+
+    t.throws(() => validator(value, 'test-property'));
+});
+
+// ValidateNested
+
+test('[Validators] ValidateNested correctly validates a nested property', (t) => {
+    const value = { key: 'test' };
+    const validator = ValidateNested<typeof value>({ key: [IsText()] });
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] ValidateNested correctly validates a deeply nested property', (t) => {
+    const value = { key: { test: 'test' } };
+    const validator = ValidateNested<typeof value>({ key: [ValidateNested({ test: [IsString] })] });
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] ValidateNested correctly validates a value that is not an object', (t) => {
+    const value = 'test';
+    const validator = ValidateNested({ key: 'test' });
+
+    t.throws(() => validator(value, 'test-property'));
+});
+
+test('[Validators] ValidateNested correctly validates a value that is an empty object', (t) => {
+    const value = {};
+    const validator = ValidateNested({ key: 'test' });
 
     t.throws(() => validator(value, 'test-property'));
 });

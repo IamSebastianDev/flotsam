@@ -28,7 +28,12 @@ import { FlotsamValidationError } from '../../utils';
  * @returns { boolean } true if the property was successfully validated
  */
 
-export const IsNumber: ValidatorFunction = (value: unknown, propertyName: string): boolean => {
+export const IsNumber: ValidatorFunction = (value: unknown, propertyName?: string): boolean => {
+    // skip null or undefined values by default
+    if (value === null || value === undefined) {
+        return true;
+    }
+
     if (typeof value === 'number') return true;
 
     throw new FlotsamValidationError(`Property '${propertyName}' must be of type 'number'`);

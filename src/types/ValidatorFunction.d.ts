@@ -1,3 +1,3 @@
 /** @format */
 
-export type ValidatorFunction = (value: unknown, propName: string) => boolean;
+export type ValidatorFunction = <T, K>(value: T, propName?: string, document?: K) => boolean;

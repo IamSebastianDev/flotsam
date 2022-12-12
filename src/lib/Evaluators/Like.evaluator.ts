@@ -1,7 +1,7 @@
 /** @format */
 
 import { EvaluatorFunction, EvaluatorOptions } from '../../types';
-import { isNonNull } from '../../utils';
+import { FlotsamEvaluationError, isNonNull } from '../../utils';
 
 /**
  * @description
@@ -35,15 +35,15 @@ import { isNonNull } from '../../utils';
 
 export const Like = (condition: string, options: EvaluatorOptions = {}): EvaluatorFunction => {
     const { strict } = options;
-    return (value: unknown, propName?: string) => {
+    return (value: unknown, propertyName?: string) => {
         if (!isNonNull(value) && isNonNull(condition)) {
             if (!strict) return false;
-            throw new TypeError(`[Query] Property ${propName} is null or undefined.`);
+            throw new FlotsamEvaluationError(`Property ${propertyName} is null or undefined.`);
         }
 
         if (typeof value !== 'string') {
-            throw new TypeError(
-                `[Query] Evaluator 'Like' can only be used for values that are of type 'String', received type ${typeof value}`
+            throw new FlotsamEvaluationError(
+                `Evaluator 'Like' can only be used for values that are of type 'String', received type ${typeof value}`
             );
         }
 

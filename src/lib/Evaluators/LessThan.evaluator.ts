@@ -1,7 +1,7 @@
 /** @format */
 
 import { EvaluatorFunction, EvaluatorOptions } from '../../types';
-import { isNonNull } from '../../utils';
+import { FlotsamEvaluationError, isNonNull } from '../../utils';
 
 /**
  * @description
@@ -35,15 +35,15 @@ import { isNonNull } from '../../utils';
 
 export const LessThan = (condition: number, options: EvaluatorOptions = {}): EvaluatorFunction => {
     const { strict } = options;
-    return (value: unknown, propName?: string) => {
+    return (value: unknown, propertyName?: string) => {
         if (!isNonNull(value) && isNonNull(condition)) {
             if (!strict) return false;
-            throw new TypeError(`[Query] Property ${propName} is null or undefined.`);
+            throw new FlotsamEvaluationError(`Property ${propertyName} is null or undefined.`);
         }
 
         if (typeof value !== 'number') {
-            throw new TypeError(
-                `[Query] Evaluator 'LessThan' can only be used for values that are of type 'Number', received type ${typeof value}`
+            throw new FlotsamEvaluationError(
+                `Evaluator 'LessThan' can only be used for values that are of type 'Number', received type ${typeof value}`
             );
         }
 
@@ -83,15 +83,15 @@ export const LessThan = (condition: number, options: EvaluatorOptions = {}): Eva
 
 export const LessThanOrEqual = (condition: number, options: EvaluatorOptions = {}): EvaluatorFunction => {
     const { strict } = options;
-    return (value: unknown, propName?: string) => {
+    return (value: unknown, propertyName?: string) => {
         if (typeof value !== 'number') {
             if (!isNonNull(value) && isNonNull(condition)) {
                 if (!strict) return false;
-                throw new TypeError(`[Query] Property ${propName} is null or undefined.`);
+                throw new FlotsamEvaluationError(`Property ${propertyName} is null or undefined.`);
             }
 
-            throw new TypeError(
-                `[Query] Evaluator 'LessThanOrEqual' can only be used for values that are of type 'Number', received type ${typeof value}`
+            throw new FlotsamEvaluationError(
+                `Evaluator 'LessThanOrEqual' can only be used for values that are of type 'Number', received type ${typeof value}`
             );
         }
 
