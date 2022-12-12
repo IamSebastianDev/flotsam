@@ -12,9 +12,9 @@ import { EvaluatorFunction } from '../../types';
  */
 
 export const Unsafe = (evaluator: EvaluatorFunction): EvaluatorFunction => {
-    return (value: unknown) => {
+    return <T, K extends Record<string, unknown>>(value: T, propertyName?: string, document?: K) => {
         try {
-            return evaluator(value);
+            return evaluator(value, propertyName, document);
         } catch (e) {
             return false;
         }

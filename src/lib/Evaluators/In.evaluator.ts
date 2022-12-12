@@ -1,7 +1,7 @@
 /** @format */
 
 import { EvaluatorFunction, EvaluatorOptions } from '../../types';
-import { isNonNull } from '../../utils';
+import { FlotsamEvaluationError, isNonNull } from '../../utils';
 
 /**
  * @description
@@ -35,10 +35,10 @@ import { isNonNull } from '../../utils';
 
 export const In = (condition: Array<string | number>, options: EvaluatorOptions = {}): EvaluatorFunction => {
     const { strict } = options;
-    return (value: unknown, propName?: string) => {
+    return (value: unknown, propertyName?: string) => {
         if (!isNonNull(value) && isNonNull(condition)) {
             if (!strict) return false;
-            throw new TypeError(`[Query] Property ${propName} is null or undefined.`);
+            throw new FlotsamEvaluationError(`Property ${propertyName} is null or undefined.`);
         }
 
         return [...condition].flat().findIndex((e) => e == value) !== -1;

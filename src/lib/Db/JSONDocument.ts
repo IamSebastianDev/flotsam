@@ -1,5 +1,6 @@
 /** @format */
-import { DocumentInit, Document } from '../../types';
+import { DocumentInit, Document, Validator } from '../../types';
+import { evaluateValidationStrategy } from './evaluateValidationStrategy';
 import { ObjectId } from './ObjectId';
 
 /**
@@ -9,10 +10,19 @@ import { ObjectId } from './ObjectId';
 export class JSONDocument<T extends Record<string, unknown>> {
     data: T;
     _id: ObjectId;
-    constructor(data: DocumentInit<T>) {
+    constructor(data: DocumentInit<T>, private validationStrategy?: Validator<T>) {
+        // pass the data to the validation method
+        this.validateData(data._);
+
         this._id = data._id ? ObjectId.from(data._id) : new ObjectId();
         delete data._._id;
+
         this.data = { ...data._ };
+    }
+
+    private validateData(data: T) {
+        if (!this.validationStrategy) return;
+        evaluateValidationStrategy(data, this.validationStrategy);
     }
 
     /**
