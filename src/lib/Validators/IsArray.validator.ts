@@ -57,7 +57,7 @@ export const IsArray = (validationRules?: ArrayValidatorInit): ValidatorFunction
             );
         }
 
-        if (items && typeof items === 'string' && !value.every((item) => typeof item !== items)) {
+        if (items && typeof items === 'string' && !value.every((item) => typeof item === items)) {
             throw new FlotsamValidationError(
                 `Expected property '${propertyName}' to contain only elements of type '${items}'.`
             );
