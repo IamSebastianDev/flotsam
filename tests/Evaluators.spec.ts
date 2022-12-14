@@ -14,6 +14,7 @@ import {
     GreaterThanOrEqual,
     LessThan,
     LessThanOrEqual,
+    Contains,
 } from '../src/lib/Evaluators';
 
 // Setup the test by creating a new Database instance and populate it with
@@ -22,8 +23,8 @@ import {
 test.beforeEach(async (t) => {
     const db = new Flotsam({ root: './tests/.store', quiet: true });
     await db.connect();
-    const test = await db.collect<{ data: string; number: number }>('test');
-    await test.insertOne({ data: 'test', number: 2 });
+    const test = await db.collect<{ data: string; number: number; obj: { key: string } }>('test');
+    await test.insertOne({ data: 'test', number: 2, obj: { key: 'name' } });
 
     ((t.context as Record<string, unknown>).db as Flotsam) = db;
 });
@@ -510,3 +511,39 @@ test.serial('[Evaluators] LessThanOrEqual should not throw when accessing a non 
         await test.findOne({ where: { number2: LessThanOrEqual(2) } });
     });
 });
+
+/**
+ * Contains
+ */
+
+test.serial('[Evaluators] Contains should find a value that is nested in a Object.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number; obj: { key: string } }>('test');
+
+    const result = await test.findOne({ where: { obj: Contains({ key: Like('name') }) } });
+    t.not(result, null);
+    t.is(result?.obj?.key, 'name');
+});
+
+test.serial('[Evaluators] Contains should throw when accessing a non existing property in strict mode.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number; obj: { key: string } }>('test');
+
+    await t.throwsAsync(async () => {
+        ///@ts-expect-error
+        await test.findOne({ where: { obj2: Contains({ key: Like('name') }, { strict: true }) } });
+    });
+});
+
+test.serial(
+    '[Evaluators] Contains should not throw when accessing a non existing property not in strict mode.',
+    async (t) => {
+        const db = (t.context as Record<string, unknown>).db as Flotsam;
+        const test = await db.collect<{ data: string; number: number; obj: { key: string } }>('test');
+
+        await t.notThrowsAsync(async () => {
+            ///@ts-expect-error
+            await test.findOne({ where: { obj2: Contains({ key: Like('name') }) } });
+        });
+    }
+);
