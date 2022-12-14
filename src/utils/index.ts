@@ -8,3 +8,4 @@ export { sortByProperty } from './sortByProperty.util';
 export { isDocument } from './isDocument.util';
 export { FlotsamValidationError } from './Errors/FlotsamValidationError';
 export { FlotsamOperationError } from './Errors/FlotsamOperationError';
+export { FlotsamEvaluationError } from './Errors/FlotsamEvaluationError';
