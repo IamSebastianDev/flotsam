@@ -2,7 +2,19 @@
 
 import test from 'ava';
 import { Flotsam } from '../src';
-import { Exactly, Is, Like, In, Unsafe, RegExp, NotEqual } from '../src/lib/Evaluators';
+import {
+    Exactly,
+    Is,
+    Like,
+    In,
+    Unsafe,
+    RegExp,
+    NotEqual,
+    GreaterThan,
+    GreaterThanOrEqual,
+    LessThan,
+    LessThanOrEqual,
+} from '../src/lib/Evaluators';
 
 // Setup the test by creating a new Database instance and populate it with
 // a Collection and a Document
@@ -305,14 +317,196 @@ test.serial('[Evaluators] NotEqual should not throw when accessing a non existin
  * GreaterThan
  */
 
+test.serial('[Evaluators] GreaterThan should find a value that is larger than the condition.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { number: GreaterThan(1) } });
+    t.not(result, null);
+    t.is(result?.number, 2);
+});
+
+test.serial('[Evaluators] GreaterThan should not find a value that is smaller than the condition.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { number: GreaterThan(3) } });
+    t.is(result, null);
+    t.not(result?.number, 1);
+});
+
+test.serial(
+    '[Evaluators] GreaterThan should throw when accessing a non existing property in strict mode.',
+    async (t) => {
+        const db = (t.context as Record<string, unknown>).db as Flotsam;
+        const test = await db.collect<{ data: string; number: number }>('test');
+
+        await t.throwsAsync(async () => {
+            ///@ts-expect-error
+            await test.findOne({ where: { number2: GreaterThan(2, { strict: true }) } });
+        });
+    }
+);
+
+test.serial('[Evaluators] GreaterThan should not throw when accessing a non existing property.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    await t.notThrowsAsync(async () => {
+        ///@ts-expect-error
+        await test.findOne({ where: { number2: GreaterThan(2) } });
+    });
+});
+
 /**
  * GreaterThanOrEqual
  */
+
+test.serial('[Evaluators] GreaterThanOrEqual should find a value that is larger than the condition.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { number: GreaterThanOrEqual(1) } });
+    t.not(result, null);
+    t.is(result?.number, 2);
+});
+
+test.serial('[Evaluators] GreaterThanOrEqual should find a value that is equal than the condition.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { number: GreaterThanOrEqual(2) } });
+    t.not(result, null);
+    t.is(result?.number, 2);
+});
+
+test.serial(
+    '[Evaluators] GreaterThanOrEqual should not find a value that is smaller than the condition.',
+    async (t) => {
+        const db = (t.context as Record<string, unknown>).db as Flotsam;
+        const test = await db.collect<{ data: string; number: number }>('test');
+
+        const result = await test.findOne({ where: { number: GreaterThanOrEqual(3) } });
+        t.is(result, null);
+        t.not(result?.number, 1);
+    }
+);
+
+test.serial(
+    '[Evaluators] GreaterThanOrEqual should throw when accessing a non existing property in strict mode.',
+    async (t) => {
+        const db = (t.context as Record<string, unknown>).db as Flotsam;
+        const test = await db.collect<{ data: string; number: number }>('test');
+
+        await t.throwsAsync(async () => {
+            ///@ts-expect-error
+            await test.findOne({ where: { number2: GreaterThanOrEqual(2, { strict: true }) } });
+        });
+    }
+);
+
+test.serial('[Evaluators] GreaterThanOrEqual should not throw when accessing a non existing property.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    await t.notThrowsAsync(async () => {
+        ///@ts-expect-error
+        await test.findOne({ where: { number2: GreaterThanOrEqual(2) } });
+    });
+});
 
 /**
  * LessThan
  */
 
+test.serial('[Evaluators] LessThan should find a value that is smaller than the condition.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { number: LessThan(3) } });
+    t.not(result, null);
+    t.is(result?.number, 2);
+});
+
+test.serial('[Evaluators] LessThan should not find a value that is larger than the condition.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { number: LessThan(1) } });
+    t.is(result, null);
+    t.not(result?.number, 2);
+});
+
+test.serial('[Evaluators] LessThan should throw when accessing a non existing property in strict mode.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    await t.throwsAsync(async () => {
+        ///@ts-expect-error
+        await test.findOne({ where: { number2: LessThan(2, { strict: true }) } });
+    });
+});
+
+test.serial('[Evaluators] LessThan should not throw when accessing a non existing property.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    await t.notThrowsAsync(async () => {
+        ///@ts-expect-error
+        await test.findOne({ where: { number2: LessThan(2) } });
+    });
+});
+
 /**
  * LessThanOrEqual
  */
+
+test.serial('[Evaluators] LessThanOrEqual should find a value that is smaller than the condition.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { number: LessThanOrEqual(3) } });
+    t.not(result, null);
+    t.is(result?.number, 2);
+});
+
+test.serial('[Evaluators] LessThanOrEqual should find a value that is equal than the condition.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { number: LessThanOrEqual(2) } });
+    t.not(result, null);
+    t.is(result?.number, 2);
+});
+
+test.serial('[Evaluators] LessThanOrEqual should not find a value that is larger than the condition.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    const result = await test.findOne({ where: { number: LessThanOrEqual(1) } });
+    t.is(result, null);
+    t.not(result?.number, 2);
+});
+
+test.serial(
+    '[Evaluators] LessThanOrEqual should throw when accessing a non existing property in strict mode.',
+    async (t) => {
+        const db = (t.context as Record<string, unknown>).db as Flotsam;
+        const test = await db.collect<{ data: string; number: number }>('test');
+
+        await t.throwsAsync(async () => {
+            ///@ts-expect-error
+            await test.findOne({ where: { number2: LessThanOrEqual(2, { strict: true }) } });
+        });
+    }
+);
+
+test.serial('[Evaluators] LessThanOrEqual should not throw when accessing a non existing property.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number }>('test');
+
+    await t.notThrowsAsync(async () => {
+        ///@ts-expect-error
+        await test.findOne({ where: { number2: LessThanOrEqual(2) } });
+    });
+});
