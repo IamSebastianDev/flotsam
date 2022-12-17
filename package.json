@@ -1,8 +1,16 @@
 {
   "name": "flotsamjs",
   "version": "1.0.0",
-  "description": "A lightweight, dependency free, in memory storage,json document based database.",
-  "keywords": ["typescript", "in memory", "depenendy free", "storage", "database", "json document", "lightweight"],
+  "description": "A lightweight, dependency free, in memory storage, json document based database.",
+  "keywords": [
+    "typescript",
+    "in memory",
+    "dependency free",
+    "storage",
+    "database",
+    "json document",
+    "lightweight"
+  ],
   "type": "module",
   "exports": {
     "./db": {
@@ -48,6 +56,7 @@
     "@types/node": "^18.11.9",
     "alex": "^11.0.0",
     "ava": "^5.1.0",
+    "c8": "^7.12.0",
     "esbuild": "^0.15.14",
     "husky": "^8.0.2",
     "prettier": "^2.8.0",
@@ -68,7 +77,7 @@
     "dev": "yarn build --watch",
     "lint": "alex .",
     "semantic-release": "semantic-release --branches release",
-    "test": "ava"
+    "test": "c8 ava"
   },
   "ava": {
     "extensions": {
