@@ -90,7 +90,7 @@ export class ObjectId {
     }
 
     private createUnique(): string {
-        const uniqueChars = chars.flatMap(this.convertToUppercase);
+        const uniqueChars = [...new Set(chars.flatMap(this.convertToUppercase))];
         return Array.apply(null, Array(24))
             .map(() => uniqueChars[this.getRandomCharIndex(uniqueChars.length)])
             .join('');
