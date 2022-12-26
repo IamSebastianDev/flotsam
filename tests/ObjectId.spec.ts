@@ -18,7 +18,7 @@ test('[ObjectId] ObjectId.value() returns a string', (t) => {
 });
 
 test('[ObjectId] ObjectId.is identifies a correct value', (t) => {
-    const value = '123456:idStringIdStringIdString';
+    const value = '123456$idStringIdStringIdString';
     t.notThrows(() => ObjectId.is(value));
     t.true(ObjectId.is(value));
 });
@@ -26,8 +26,8 @@ test('[ObjectId] ObjectId.is identifies a correct value', (t) => {
 test('[ObjectId] ObjectId.is throws an error when a wrong value is passed', (t) => {
     t.throws(() => ObjectId.is('notAIdString'));
     t.throws(() => ObjectId.is('123456notAIdStringNotAIdString'));
-    t.throws(() => ObjectId.is('1234A9:notAIdStringNotAIdString'));
-    t.throws(() => ObjectId.is('1234A9:notAId-tringNot.IdString'));
+    t.throws(() => ObjectId.is('1234A9$notAIdStringNotAIdString'));
+    t.throws(() => ObjectId.is('1234A9$notAId-tringNot.IdString'));
 });
 
 test('[ObjectId] returns a unique id', (t) => {
