@@ -511,6 +511,47 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
+     * Method to delete the first found `Document` by a given set of simplified findByProperty options.
+     * Returns the deleted `Document` or false, if no `Document` was found.
+     *
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for the first Document containing a `name` property including 'flotsam'
+     * const result = await collection.deleteOneBy({name: Like('flotsam') });
+     * ```
+     * ---
+     *
+     * @param { FindByProperty } findOptions - the find options to find the `Document` by.
+     * @returns { Promise<Document | false> } the deleted `Document` or false, if no `Document` was found.
+     */
+
+    async deleteOneBy(findOptions: FindByProperty<T>): Promise<Document<T> | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const items = await this.getEntriesByFindOptions({ where: findOptions });
+
+                    if (items[0] === undefined) {
+                        return res(false);
+                    }
+
+                    const deleted = await this.delete(items[0].id);
+
+                    return res(deleted ? items[0] : false);
+                });
+            })
+        );
+    }
+
+    /**
+     * @description
      * Collection method to delete a number of `Documents` according to the given `FindOptions`.
      *
      * ---
