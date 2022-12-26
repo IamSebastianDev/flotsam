@@ -417,14 +417,14 @@ export class Collection<T extends Record<string, unknown>> {
      */
 
     private async delete(id: string): Promise<boolean> {
-        return this.#queue.enqueue(
-            new Promise(async (res) => {
+        return new Promise((res, rej) => {
+            return safeAsyncAbort(this.rejector(rej), async () => {
                 this.#documents.delete(id);
                 await rm(resolve(this.#dir, id));
                 this.ctx.emit('delete');
                 res(true);
-            })
-        );
+            });
+        });
     }
 
     /**
