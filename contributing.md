@@ -30,6 +30,7 @@ After installing the necessary tools, you can run the commands below to start de
 -   `yarn dev`: Build the library in watch mode
 -   `yarn lint`: Runs [alex](https://alexjs.com) as linter
 -   `yarn test`: Runs [ava](https://github.com/avajs/ava) with the tests supplied in the `tests` directory
+-   `yarn test:coverage`: Runs [ava](https://github.com/avajs/ava) and uses [c8](https://github.com/bcoe/c8) to calculate test coverage after running the tests
 
 ## Development - Enforcing Code Standards
 

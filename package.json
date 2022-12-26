@@ -77,7 +77,8 @@
     "dev": "yarn build --watch",
     "lint": "alex .",
     "semantic-release": "semantic-release --branches release",
-    "test": "c8 ava"
+    "test": "ava",
+    "test:coverage": "c8 yarn run test"
   },
   "ava": {
     "extensions": {
