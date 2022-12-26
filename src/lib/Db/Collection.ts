@@ -417,14 +417,14 @@ export class Collection<T extends Record<string, unknown>> {
      */
 
     private async delete(id: string): Promise<boolean> {
-        return this.#queue.enqueue(
-            new Promise(async (res) => {
+        return new Promise((res, rej) => {
+            return safeAsyncAbort(this.rejector(rej), async () => {
                 this.#documents.delete(id);
                 await rm(resolve(this.#dir, id));
                 this.ctx.emit('delete');
                 res(true);
-            })
-        );
+            });
+        });
     }
 
     /**
@@ -496,6 +496,47 @@ export class Collection<T extends Record<string, unknown>> {
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     const items = await this.getEntriesByFindOptions(findOptions);
+
+                    if (items[0] === undefined) {
+                        return res(false);
+                    }
+
+                    const deleted = await this.delete(items[0].id);
+
+                    return res(deleted ? items[0] : false);
+                });
+            })
+        );
+    }
+
+    /**
+     * @description
+     * Method to delete the first found `Document` by a given set of simplified findByProperty options.
+     * Returns the deleted `Document` or false, if no `Document` was found.
+     *
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for the first Document containing a `name` property including 'flotsam'
+     * const result = await collection.deleteOneBy({name: Like('flotsam') });
+     * ```
+     * ---
+     *
+     * @param { FindByProperty } findOptions - the find options to find the `Document` by.
+     * @returns { Promise<Document | false> } the deleted `Document` or false, if no `Document` was found.
+     */
+
+    async deleteOneBy(findOptions: FindByProperty<T>): Promise<Document<T> | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const items = await this.getEntriesByFindOptions({ where: findOptions });
 
                     if (items[0] === undefined) {
                         return res(false);
@@ -813,24 +854,22 @@ export class Collection<T extends Record<string, unknown>> {
      */
 
     private async update(document: Document<T>, data: Partial<T>): Promise<Document<T>> {
-        return this.#queue.enqueue(
-            new Promise(async (res, rej) => {
-                safeAsyncAbort(this.rejector(rej), async () => {
-                    const updated = new JSONDocument(
-                        { _id: document.id, _: { ...document, ...data } },
-                        this.validationStrategy
-                    );
+        return new Promise((res, rej) => {
+            return safeAsyncAbort(this.rejector(rej), async () => {
+                const updated = new JSONDocument(
+                    { _id: document.id, _: { ...document, ...data } },
+                    this.validationStrategy
+                );
 
-                    let content = updated.toFile();
-                    if (this.#crypt) content = this.#crypt.encrypt(content);
+                let content = updated.toFile();
+                if (this.#crypt) content = this.#crypt.encrypt(content);
 
-                    await writeFile(resolve(this.#dir, document.id), content, 'utf8');
-                    this.#documents.set(document.id, updated);
+                await writeFile(resolve(this.#dir, document.id), content, 'utf8');
+                this.#documents.set(document.id, updated);
 
-                    return res(updated.toDoc());
-                });
-            })
-        );
+                return res(updated.toDoc());
+            });
+        });
     }
 
     /**

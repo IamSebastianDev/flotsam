@@ -22,6 +22,13 @@ test('[Validators] IsText correctly validates a string', (t) => {
     t.is(validator(value, 'test-property'), true);
 });
 
+test('[Validators] IsText correctly validates a nullish value', (t) => {
+    const value = undefined;
+    const validator = IsText();
+
+    t.is(validator(value, 'test-property'), true);
+});
+
 test('[Validators] IsText correctly validates a non string', (t) => {
     const value = 5;
     const validator = IsText();
@@ -47,6 +54,13 @@ test('[Validators] IsText correctly validates a long string', (t) => {
 
 test('[Validators] IsInt correctly validates a Integer', (t) => {
     const value = 5;
+    const validator = IsInt();
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsInt correctly validates a nullish value', (t) => {
+    const value = undefined;
     const validator = IsInt();
 
     t.is(validator(value, 'test-property'), true);
@@ -93,6 +107,13 @@ test('[Validators] NotNull correctly validate a null value', (t) => {
 
 test('[Validators] IsArray correctly validates an Array', (t) => {
     const value = new Array();
+    const validator = IsArray();
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsArray correctly validates an nullish value', (t) => {
+    const value = undefined;
     const validator = IsArray();
 
     t.is(validator(value, 'test-property'), true);
@@ -159,6 +180,13 @@ test('[Validators] IsType correctly validates a String', (t) => {
     t.is(validator(value, 'test-property'), true);
 });
 
+test('[Validators] IsType correctly validates a nullish value', (t) => {
+    const value = undefined;
+    const validator = IsType({ type: 'string' });
+
+    t.is(validator(value, 'test-property'), true);
+});
+
 test('[Validators] IsType correctly validates a Number', (t) => {
     const value = 10;
     const validator = IsType({ type: 'number' });
@@ -196,10 +224,26 @@ test('[Validators] IsType correctly validates a complex type', (t) => {
     t.is(validator(value, 'test-property'), true);
 });
 
+test('[Validators] IsType correctly validates a complex incorrect type', (t) => {
+    const values = ['a', 'b', 'c'];
+    const value = 2;
+
+    const validator = IsType({ type: (value: unknown) => values.includes(<string>value) });
+
+    t.throws(() => validator(value, 'test-property'));
+});
+
 // IsString
 
 test('[Validators] IsString correctly validates a String', (t) => {
     const value = 'string';
+    const validator = IsString;
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsString correctly validates a nullish value', (t) => {
+    const value = undefined;
     const validator = IsString;
 
     t.is(validator(value, 'test-property'), true);
@@ -221,6 +265,13 @@ test('[Validators] IsNumber correctly validates a Number', (t) => {
     t.is(validator(value, 'test-property'), true);
 });
 
+test('[Validators] IsNumber correctly validates a nullish value', (t) => {
+    const value = undefined;
+    const validator = IsNumber;
+
+    t.is(validator(value, 'test-property'), true);
+});
+
 test('[Validators] IsString correctly validates a non Number', (t) => {
     const value = 'test';
     const validator = IsNumber;
@@ -232,6 +283,13 @@ test('[Validators] IsString correctly validates a non Number', (t) => {
 
 test('[Validators] IsDate correctly validates a Date Object', (t) => {
     const value = new Date();
+    const validator = IsDate;
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] IsDate correctly validates a nullish value', (t) => {
+    const value = undefined;
     const validator = IsDate;
 
     t.is(validator(value, 'test-property'), true);
@@ -255,6 +313,14 @@ test('[Validators] IsDate correctly validates a value that does not represent a 
 
 test('[Validators] ValidateNested correctly validates a nested property', (t) => {
     const value = { key: 'test' };
+    const validator = ValidateNested<typeof value>({ key: [IsText()] });
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] ValidateNested correctly validates a nullish property', (t) => {
+    const value = undefined;
+    ///@ts-expect-error
     const validator = ValidateNested<typeof value>({ key: [IsText()] });
 
     t.is(validator(value, 'test-property'), true);

@@ -1,6 +1,6 @@
 /** @format */
 
-export type EvaluatorFunction = <T = unknown, K extends Record<string, unknown>>(
+export type EvaluatorFunction = <T, K extends Record<string, unknown>>(
     value: T,
     propertyName?: string,
     document?: K

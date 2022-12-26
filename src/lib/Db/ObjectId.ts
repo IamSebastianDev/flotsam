@@ -14,7 +14,7 @@ export class ObjectId {
 
     static from(raw: string): ObjectId {
         ObjectId.is(raw);
-        const [timestamp, unique] = raw.split(':');
+        const [timestamp, unique] = raw.split('$');
 
         const id = new ObjectId();
         id.timestamp = timestamp;
@@ -39,9 +39,9 @@ export class ObjectId {
             throw new TypeError(`[ObjectId] Value "${value}" is of type ${typeof value}. Expected type string.`);
         }
 
-        const [timestamp, unique] = value.split(':');
+        const [timestamp, unique] = value.split('$');
 
-        if (!value.includes(':')) {
+        if (!value.includes('$')) {
             throw new Error(`[ObjectId] Value "${value}" is not in the correct format.`);
         }
 
@@ -90,7 +90,7 @@ export class ObjectId {
     }
 
     private createUnique(): string {
-        const uniqueChars = chars.flatMap(this.convertToUppercase);
+        const uniqueChars = [...new Set(chars.flatMap(this.convertToUppercase))];
         return Array.apply(null, Array(24))
             .map(() => uniqueChars[this.getRandomCharIndex(uniqueChars.length)])
             .join('');
@@ -125,7 +125,7 @@ export class ObjectId {
     }
 
     private get id(): string {
-        return this.#timestamp + ':' + this.#unique;
+        return this.#timestamp + '$' + this.#unique;
     }
 
     /**
