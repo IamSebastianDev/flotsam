@@ -28,14 +28,10 @@ export class Queue {
         const task = this.#queue.shift();
         if (!task) return;
 
-        try {
-            this.#executing = true;
-            task.execute()
-                .then((result) => this.resolveTask(task, result))
-                .catch((err) => this.rejectTask(task, err));
-        } catch (err) {
-            this.rejectTask(task, err);
-        }
+        this.#executing = true;
+        task.execute()
+            .then((result) => this.resolveTask(task, result))
+            .catch((err) => this.rejectTask(task, err));
     }
 
     private resolveTask(task: QueueTask, result: unknown) {

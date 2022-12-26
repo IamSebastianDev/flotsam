@@ -813,24 +813,22 @@ export class Collection<T extends Record<string, unknown>> {
      */
 
     private async update(document: Document<T>, data: Partial<T>): Promise<Document<T>> {
-        return this.#queue.enqueue(
-            new Promise(async (res, rej) => {
-                safeAsyncAbort(this.rejector(rej), async () => {
-                    const updated = new JSONDocument(
-                        { _id: document.id, _: { ...document, ...data } },
-                        this.validationStrategy
-                    );
+        return new Promise((res, rej) => {
+            return safeAsyncAbort(this.rejector(rej), async () => {
+                const updated = new JSONDocument(
+                    { _id: document.id, _: { ...document, ...data } },
+                    this.validationStrategy
+                );
 
-                    let content = updated.toFile();
-                    if (this.#crypt) content = this.#crypt.encrypt(content);
+                let content = updated.toFile();
+                if (this.#crypt) content = this.#crypt.encrypt(content);
 
-                    await writeFile(resolve(this.#dir, document.id), content, 'utf8');
-                    this.#documents.set(document.id, updated);
+                await writeFile(resolve(this.#dir, document.id), content, 'utf8');
+                this.#documents.set(document.id, updated);
 
-                    return res(updated.toDoc());
-                });
-            })
-        );
+                return res(updated.toDoc());
+            });
+        });
     }
 
     /**
