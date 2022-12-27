@@ -21,6 +21,7 @@ The Validator Function is used to validate a inserted value against a set of con
 -   [IsInt](./IsInt.validator.md) to validate a value to be an integer
 -   [IsArray](./IsArray.validator.md) to validate a value to be an array
 -   [IsDate](./IsDate.validator.md) to validate a value to be a Date
+-   [ValidateNested](./ValidateNested.validator.md) to validate the properties of a given object
 
 ## Using a Validator
 
