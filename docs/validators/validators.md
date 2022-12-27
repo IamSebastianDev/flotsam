@@ -7,7 +7,7 @@
 ## API
 
 **`Validator Function`**
-Type: `(value: unknown, propertyName?: string, document?: Record<string, unknown>) => boolean`
+Type: `<T extends unknown, K extends Record<string, unknown>>(value: T, propertyName?: string, document?: K) => boolean`
 
 The Validator Function is used to validate a inserted value against a set of conditions. The function receives the `value` to check as the first argument. The name of the property being evaluated as well as the Document being evaluated are passed as optional Parameters. The function should return true if evaluating correctly and throw a `FlotsamValidationError` when evaluating incorrectly.
 
