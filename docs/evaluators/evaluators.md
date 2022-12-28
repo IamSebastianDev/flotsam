@@ -51,7 +51,7 @@ const item = collection.findOne({
 
 ## Creating and using a custom Evaluator Function
 
-Evaluators in their most basic form are `functions` that accept a value as argument and then checks the value against a condition. The function returns a Boolean indicating if the value matches or not. By default, null or undefined values simply return false, if you'd like to indicate that the value needs to be not null or undefined, a `FlotsamEvaluationError` should be thrown.
+Evaluators in their most basic form are `functions` that accept a value as argument and then checks the value against a condition. The function returns a Boolean indicating if the value matches or not. By default, null or undefined values return false, if you'd like to indicate that the value needs to be not null or undefined, a `FlotsamEvaluationError` should be thrown.
 
 ```ts
 // IsBetween.evaluator.ts
