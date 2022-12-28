@@ -15,10 +15,10 @@ The Function receives the value as the first Argument, the propertyName that is 
 
 -   [Contains](./Contains.evaluator.md) to evaluate properties of a given object
 -   [Exactly](./Exactly.evaluator.md) to check for an exact match of a given value
--   [GreaterThan & GreaterThanOrEqual](./GreaterThan.evaluator.md) to check for numeric values that are larger than a given value
+-   [GreaterThan](./GreaterThan.evaluator.md) & [GreaterThanOrEqual](./GreaterThanOrEqual.evaluator.md) to check for numeric values that are larger than a given value
 -   [In](./In.evaluator.md) to check if a checked value is included in a given array
 -   [Is](./Is.evaluator.md) to check for a loose match of a given value
--   [LessThan & LessThanOrEqual](./LessThan.evaluator.md) to check for numeric values that are smaller than a given value
+-   [LessThan](./LessThan.evaluator.md) & [LessThanOrEqual](./LessThanOrEqual.evaluator.md) to check for numeric values that are smaller than a given value
 -   [Like](./Like.evaluator.md) for advanced text comparisons
 -   [NotEqual](./NotEqual.evaluator.md) to check for a value being not equal to a given value
 -   [RegExp](./RegExp.evaluator.md) to evaluate a value by a given regular expression
