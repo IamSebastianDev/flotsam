@@ -7,7 +7,7 @@
 ## API
 
 **`Validator Function`**
-Type: `(value: unknown, propertyName?: string, document?: Record<string, unknown>) => boolean`
+Type: `<T extends unknown, K extends Record<string, unknown>>(value: T, propertyName?: string, document?: K) => boolean`
 
 The Validator Function is used to validate a inserted value against a set of conditions. The function receives the `value` to check as the first argument. The name of the property being evaluated as well as the Document being evaluated are passed as optional Parameters. The function should return true if evaluating correctly and throw a `FlotsamValidationError` when evaluating incorrectly.
 
@@ -25,7 +25,7 @@ The Validator Function is used to validate a inserted value against a set of con
 
 ## Using a Validator
 
-**Validators** are added in a Validation Scheme to a **Collection** when the **Collection** is created. **Fløtsam** comes with two different kind of Validators, static and configurable.
+**Validators** are added in a [Validation Scheme](./schema-validation.md) to a **Collection** when the **Collection** is created. **Fløtsam** comes with two different kind of Validators, static and configurable.
 
 -   Static Validators are Validator Functions, that validate a value to match a specific condition.
 -   Configurable Validators are Functions, that create a Validator Function from a given set of options.
@@ -60,7 +60,7 @@ Validators in their most basic form are `functions` that accept a value as argum
 // IsAuthor.validator.ts
 
 import { FlotsamValidationError } from 'flotsam/validators';
-import type { ValidatorFunction } from '';
+import type { ValidatorFunction } from 'flotsam/validators';
 
 // We create a custom validator function that accepts an
 // array of authors and returns a function to validate
@@ -77,7 +77,7 @@ export const IsAuthor = (authors: string[]): ValidatorFunction => {
 };
 ```
 
-The created **Validator Function** can be used like any other Evaluator.
+The created **Validator Function** can be used like any other Validator.
 
 ```ts
 // main.ts

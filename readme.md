@@ -133,9 +133,11 @@ const jetsam = await db.collect<Jetsam>('jetsam');
 
 const item = await jetsam.findOne({
     where: {
-        // The `Like` evaluator will match any string that contains the supplied argument
+        // The `Like` evaluator will match any string that
+        // contains the supplied argument
         description: Like('floating'),
-        // The `GreaterThan` evaluator will match any number that is greater than the supplied argument
+        // The `GreaterThan` evaluator will match any number
+        // that is greater than the supplied argument
         weight: GreaterThan(10),
     },
 });
