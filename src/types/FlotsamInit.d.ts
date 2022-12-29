@@ -29,7 +29,8 @@ export type FlotsamInit = {
      * @type { string }
      * @optional
      * @description
-     * Object containing auth properties to use for encrypting the data stored on disk
+     * A string used as secret to encrypt the JSON Documents on disk. If no string is passed,
+     * no encryption will take place.
      */
 
     auth?: string;

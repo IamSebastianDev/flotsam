@@ -1,16 +1,17 @@
 /** @format */
 
-import { __root, safeAsyncAbort, isTruthy, sortByProperty, isDocument } from '../../utils';
+import { __root, safeAsyncAbort, isTruthy, sortByProperty, isDocument, FlotsamValidationError } from '../../utils';
 import { Flotsam } from './Flotsam';
 import { readdir, mkdir, rm, readFile, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, unwatchFile } from 'node:fs';
 import { ObjectId } from './ObjectId';
 import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
 import { Queue } from './Queue';
-import type { Document, Rejector, FindOptions, FindByProperty, DocumentInit } from '../../types';
+import type { Document, Rejector, FindOptions, FindByProperty, DocumentInit, Validator } from '../../types';
 import { evaluateFindOptions } from './evaluateFindOptions';
 import { Crypto } from './Crypto';
+import { FlotsamError } from '../../utils/Errors/FlotsamError';
 
 /**
  * @Class
@@ -86,7 +87,7 @@ export class Collection<T extends Record<string, unknown>> {
     #documents: Map<string, JSONDocument<T>> = new Map();
     #queue: Queue = new Queue();
     #crypt: Crypto | null = null;
-    constructor(private ctx: Flotsam, private namespace: string) {
+    constructor(private ctx: Flotsam, private namespace: string, private validationStrategy?: Validator<T>) {
         this.#dir = resolve(ctx.root, this.namespace);
         this.#crypt = ctx.auth ? new Crypto(ctx.auth) : null;
 
@@ -141,7 +142,18 @@ export class Collection<T extends Record<string, unknown>> {
 
     private rejector(reject: Rejector): Rejector {
         return (error: unknown) => {
-            this.ctx.emit('error', error);
+            if (FlotsamError.is(error)) {
+                if (!FlotsamError.current(error)) {
+                    if (error.rethrows) {
+                        reject(error);
+                    }
+                    return;
+                }
+
+                error.reported = true;
+            }
+
+            this.ctx.emit('error', (error as Error).message);
             reject(error);
         };
     }
@@ -191,7 +203,7 @@ export class Collection<T extends Record<string, unknown>> {
 
                             this.#documents.set(
                                 ObjectId.from(doc._id || document).str,
-                                new JSONDocument<T>({ _id: document, _: doc._ })
+                                new JSONDocument<T>({ _id: document, _: doc._ }, this.validationStrategy)
                             );
 
                             return true;
@@ -327,10 +339,10 @@ export class Collection<T extends Record<string, unknown>> {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     let doc, upsert;
                     if (isDocument(data)) {
-                        doc = new JSONDocument({ _id: data.id, _: data });
+                        doc = new JSONDocument({ _id: data.id, _: data }, this.validationStrategy);
                         upsert = true;
                     } else {
-                        doc = new JSONDocument({ _: data });
+                        doc = new JSONDocument({ _: data }, this.validationStrategy);
                     }
 
                     const inserted = await this.insert(doc);
@@ -368,15 +380,15 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const docs = data.map((doc) => new JSONDocument({ _: doc }));
+                    const docs = data.map((doc) => new JSONDocument({ _: doc }), this.validationStrategy);
                     const success = await Promise.all(
                         data.map(async (data) => {
                             let doc, upsert;
                             if (isDocument(data)) {
-                                doc = new JSONDocument({ _id: data._id.str, _: data });
+                                doc = new JSONDocument({ _id: data._id.str, _: data }, this.validationStrategy);
                                 upsert = true;
                             } else {
-                                doc = new JSONDocument({ _: data });
+                                doc = new JSONDocument({ _: data }, this.validationStrategy);
                             }
                             const inserted = await this.insert(doc);
 
@@ -405,14 +417,14 @@ export class Collection<T extends Record<string, unknown>> {
      */
 
     private async delete(id: string): Promise<boolean> {
-        return this.#queue.enqueue(
-            new Promise(async (res) => {
+        return new Promise((res, rej) => {
+            return safeAsyncAbort(this.rejector(rej), async () => {
                 this.#documents.delete(id);
                 await rm(resolve(this.#dir, id));
                 this.ctx.emit('delete');
                 res(true);
-            })
-        );
+            });
+        });
     }
 
     /**
@@ -499,6 +511,47 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
+     * Method to delete the first found `Document` by a given set of simplified findByProperty options.
+     * Returns the deleted `Document` or false, if no `Document` was found.
+     *
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for the first Document containing a `name` property including 'flotsam'
+     * const result = await collection.deleteOneBy({name: Like('flotsam') });
+     * ```
+     * ---
+     *
+     * @param { FindByProperty } findOptions - the find options to find the `Document` by.
+     * @returns { Promise<Document | false> } the deleted `Document` or false, if no `Document` was found.
+     */
+
+    async deleteOneBy(findOptions: FindByProperty<T>): Promise<Document<T> | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const items = await this.getEntriesByFindOptions({ where: findOptions });
+
+                    if (items[0] === undefined) {
+                        return res(false);
+                    }
+
+                    const deleted = await this.delete(items[0].id);
+
+                    return res(deleted ? items[0] : false);
+                });
+            })
+        );
+    }
+
+    /**
+     * @description
      * Collection method to delete a number of `Documents` according to the given `FindOptions`.
      *
      * ---
@@ -563,6 +616,10 @@ export class Collection<T extends Record<string, unknown>> {
                         .filter(([, value]) => evaluateFindOptions(value.toDoc(), findOptions))
                         .map(([, doc]) => doc.toDoc());
 
+                    if (findOptions.limit && items.length > findOptions.limit) {
+                        items.length = findOptions.limit;
+                    }
+
                     if (findOptions.order) {
                         const { by, property } = findOptions.order;
                         if (by && property) items.sort(sortByProperty(property, by));
@@ -574,10 +631,6 @@ export class Collection<T extends Record<string, unknown>> {
 
                     if (findOptions.take) {
                         items.length = findOptions.take;
-                    }
-
-                    if (findOptions.limit && items.length > findOptions.limit) {
-                        items.length = findOptions.limit;
                     }
 
                     res(items);
@@ -627,7 +680,8 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
-     * Collection method to select the first `Document` according to the given find options.
+     * Method to select a `Document` according to the given `FindOptions`.
+     * Returns the `Document` or `null` if no result was found.
      *
      * ---
      *
@@ -801,9 +855,12 @@ export class Collection<T extends Record<string, unknown>> {
      */
 
     private async update(document: Document<T>, data: Partial<T>): Promise<Document<T>> {
-        return this.#queue.enqueue(
-            new Promise(async (res, rej) => {
-                const updated = new JSONDocument({ _id: document.id, _: { ...document, ...data } });
+        return new Promise((res, rej) => {
+            return safeAsyncAbort(this.rejector(rej), async () => {
+                const updated = new JSONDocument(
+                    { _id: document.id, _: { ...document, ...data } },
+                    this.validationStrategy
+                );
 
                 let content = updated.toFile();
                 if (this.#crypt) content = this.#crypt.encrypt(content);
@@ -812,8 +869,8 @@ export class Collection<T extends Record<string, unknown>> {
                 this.#documents.set(document.id, updated);
 
                 return res(updated.toDoc());
-            })
-        );
+            });
+        });
     }
 
     /**
@@ -983,6 +1040,59 @@ export class Collection<T extends Record<string, unknown>> {
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     const items = await this.getEntriesByFindOptions(findOptions);
+
+                    if (items.length === 0) {
+                        return res(false);
+                    }
+
+                    const updated = await Promise.all(
+                        items.map(async (item) => {
+                            const updated = await this.update(item, data);
+                            if (updated) this.ctx.emit('update');
+                            return updated;
+                        })
+                    );
+
+                    return res(updated.every(isTruthy) ? updated : false);
+                });
+            })
+        );
+    }
+
+    /**
+     * @description
+     * Collection method to select a number of `Documents` according to the given findByProperty options
+     * and update them with a given set of data.
+     *
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for any number of Documents containing a `name` property including 'flotsam'
+     * // and update them
+     * const result = await collection.updateManyBy({name: Like('flotsam') }, { name: 'jetsam' });
+     * ```
+     *
+     * The full set of `FindOptions` applies, meaning the results can filtered, limited, skipped and orderer
+     * before executing the update operation.
+     *
+     * ---
+     *
+     * @param { FindByProperty } findOptions - the given FindOptions to select `Documents` by.
+     * @param { Record<string, unknown> } data - a object containing the data to update.
+     * @returns { Promise<Document[]> } an Array of Documents.
+     */
+
+    async updateManyBy(findOptions: FindByProperty<T>, data: Partial<T>): Promise<Document<T>[] | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const items = await this.getEntriesByFindOptions({ where: findOptions });
 
                     if (items.length === 0) {
                         return res(false);

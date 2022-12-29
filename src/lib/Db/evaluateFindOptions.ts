@@ -19,7 +19,9 @@ export const evaluateFindOptions = <T extends Record<string, unknown>>(
 ): boolean => {
     return ([findOptions.where].flat() as FindByProperty<T>[]).some((findOption) => {
         return Object.entries(findOption).every(([prop, evaluator]) => {
-            return typeof evaluator === 'function' ? evaluator(document[prop], prop) : document[prop] === evaluator;
+            return typeof evaluator === 'function'
+                ? evaluator(document[prop], prop, document)
+                : document[prop] === evaluator;
         });
     });
 };

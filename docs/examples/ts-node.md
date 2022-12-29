@@ -105,6 +105,7 @@ Similar methods exist on the `Collection` object for other operations:
 -   `updateOne()`
 -   `updateMany()`
 -   `deleteOneById()`
+-   `deleteOneBy()`
 -   `deleteOne()`
 -   `deleteMany()`
 

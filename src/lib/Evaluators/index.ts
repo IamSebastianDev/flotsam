@@ -9,3 +9,6 @@ export { In } from './In.evaluator';
 export { Unsafe } from './Unsafe.evaluator';
 export { NotEqual } from './NotEqual.evaluator';
 export { RegExp } from './RegExp.evaluator';
+export { Contains } from './Contains.evaluator';
+export { FlotsamEvaluationError } from '../../utils';
+export type { EvaluatorFunction, EvaluatorOptions } from '../../types';
