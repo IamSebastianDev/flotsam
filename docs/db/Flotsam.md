@@ -19,26 +19,28 @@ const db = new Flotsam({
 });
 ```
 
-### `Root`
+### Configuration Properties
+
+#### `Root`
 
 Type: `string`
 
 String describing the root of the directory used to store the JSON documents.
 
-### `log`
+#### `log`
 
 Type: `string | undefined`
 
 If a string is passed as property, the string will be used as location for a log file, where all errors are logged to.
 The logfile will be created relative to the storage root of the db.
 
-### `quiet`
+#### `quiet`
 
 Type: `boolean | undefined`
 
 Boolean indicating if logs & warnings should be suppressed.
 
-### `auth`
+#### `auth`
 
 Type: `string | undefined
 
@@ -47,11 +49,13 @@ no encryption will take place.`
 
 ## API
 
-### `new Flotsam(init: FlotsamInit): Flotsam`
+### Flotsam (Class)
+
+#### `new Flotsam(init: FlotsamInit): Flotsam`
 
 The constructor is used used to create and configure a new **Flotsam** instance.
 
-### `flotsam.close(): Promise<void>`
+#### `flotsam.close(): Promise<void>`
 
 Closes the connection of the **Flotsam** instance and serializes all Documents to disk.
 
@@ -59,7 +63,7 @@ Closes the connection of the **Flotsam** instance and serializes all Documents t
 await db.close();
 ```
 
-### `flotsam.connect(callback: Callback | null, error?: ErrorHandler): Promise<boolean>`
+#### `flotsam.connect(callback: Callback | null, error?: ErrorHandler): Promise<boolean>`
 
 Connects the **Flotsam** instance. The underlying storage space is validated or created in this step. A success and error Callback can be passed to method, which will be called when the connection succeeds or fails.
 
@@ -78,7 +82,7 @@ await db.connect(
 );
 ```
 
-### `flotsam.collect<T>(namespace: string, validationStrategy: Validator<T>): Promise<Collection<T>>`
+#### `flotsam.collect<T>(namespace: string, validationStrategy: Validator<T>): Promise<Collection<T>>`
 
 Method to retrieve a **Collection** from the database. The **Collection** is deserialized from the filesystem and cached. Subsequent calls to the collect method will return the cached reference to the **Collection**. A second argument can be provided to create a **Validation Schema** to validate inserted or updated **Documents**.
 
@@ -99,11 +103,11 @@ const books = await db.collect<Book>('books', {
 });
 ```
 
-### `flotsam.emit(event: FlotsamEvent, ...args: any[]): void`
+#### `flotsam.emit(event: FlotsamEvent, ...args: any[]): void`
 
 Method to emit a `FlotsamEvent` with a specific Payload. This is the method used by the **Flotsam** instance to emit it's own events.
 
-### `flotsam.jettison(namespace: string, soft?: boolean = false): Promise<boolean>`
+#### `flotsam.jettison(namespace: string, soft?: boolean = false): Promise<boolean>`
 
 Method to remove a **Collection** from the physical storage directory or the collection cache, when the `soft` argument is set to true.
 
@@ -117,7 +121,7 @@ const collection = await db.collect('collection');
 await db.jettison('collection');
 ```
 
-### `flotsam.on(event: FlotsamEvent, handler: Subscriber): Unsubscriber`
+#### `flotsam.on(event: FlotsamEvent, handler: Subscriber): Unsubscriber`
 
 Method to listen to a `Flotsam Event` emitted by the database. The handler passed as second argument will be called whenever the corresponding event is emitted. The method returns a function to unsubscribe and remove the handler from the instance.
 
