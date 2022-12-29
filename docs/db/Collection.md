@@ -9,11 +9,13 @@ the `collect()` method will return the cached **Collection**.
 
 ## API
 
-### `new Collection<T>(ctx: Flotsam, namespace: string, validationStrategy: Validator<T>): Collection<T>`
+### Collection (Class)
+
+#### `new Collection<T>(ctx: Flotsam, namespace: string, validationStrategy: Validator<T>): Collection<T>`
 
 The constructor of the **Collection** is used to assign the Database Context, the namespace passed to the Database's `collect()` method as well as the validator that is supposed to be used with the **Collection**. The instantiation of the **Collection** is usually handled by the passed **Fløtsam** instance and shouldn't be initiated manually.
 
-### `collection.count: Promise<number>`
+#### `collection.count: Promise<number>`
 
 Returns the number of **Documents** currently stored in the **Collection** as a `Promise`.
 
@@ -23,7 +25,7 @@ console.log(count);
 // Logs number of Documents currently stored in the Collection
 ```
 
-### `collection.entries: Promise<Document<T>[]>`
+#### `collection.entries: Promise<Document<T>[]>`
 
 Returns a copy of all **Documents** stored in the **Collection** as a `Promise`.
 
@@ -33,19 +35,19 @@ console.log(entries);
 // Logs an Array that contains a copy of all Documents stored in the Collection
 ```
 
-### `collection.deserialize(): Promise<boolean>`
+#### `collection.deserialize(): Promise<boolean>`
 
 Method used to deserialize the **Collection**. This will load all records stored in the namespaced folder into the internal cache. The deserialization process will return true if successful. The serialization and deserialization of the **Collection** is usually handled by the passed **Fløtsam** instance and shouldn't be initiated manually.
 
-### `collection.serialize(): Promise<boolean>`
+#### `collection.serialize(): Promise<boolean>`
 
 Method used to serialize the **Collection**. This will store all objects in the internal cache as record in the namespaced folder. The process will return true if successful. The serialization and deserialization of the **Collection** is usually handled by the passed **Fløtsam** instance and shouldn't be initiated manually.
 
-### `collection.jettison(): Promise<boolean>`
+#### `collection.jettison(): Promise<boolean>`
 
 Drops the **Collection** and removes all physical **Documents** stored on disk. The process will return true if successful and is usually handled by the passed **Fløtsam** instance and shouldn't be initiated manually.
 
-### `collection.insertOne(data: T | Document): Promise<Document<T> | false>`
+#### `collection.insertOne(data: T | Document): Promise<Document<T> | false>`
 
 Method to insert data or a **Document** into the **Collection**. If a **Document** is given that already exists, the **Document** is upserted. The inserted **Document** is returned on success, if unsuccessful `false` is returned.
 
@@ -58,7 +60,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.insertOne({ name: 'Flotsam' });
 ```
 
-### `collection.insertMany(...data: T | Document<T>): Promise<Document<T>[] | false>`
+#### `collection.insertMany(...data: T | Document<T>): Promise<Document<T>[] | false>`
 
 Method to insert multiple sets of data or **Documents** into the **Collection**. If any **Document** is given that already exists, that **Document** is upserted. The inserted **Documents** are returned on success, if unsuccessful `false` is returned.
 
@@ -71,7 +73,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.insertMany({ name: 'Flotsam' }, { name: 'Jetsam' });
 ```
 
-### `collection.deleteOne(findOptions: FindOptions<T>): Promise<Document<T> | false>`
+#### `collection.deleteOne(findOptions: FindOptions<T>): Promise<Document<T> | false>`
 
 Method to delete the first found **Document** by a given set of `FindOptions`. Returns the deleted **Document** or false, if no **Document** was found.
 
@@ -86,7 +88,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.deleteOne({ where: { name: Like('flotsam') } });
 ```
 
-### `collection.deleteOneBy(findOptions: FindByProperty<T>): Promise<Document<T> | false>`
+#### `collection.deleteOneBy(findOptions: FindByProperty<T>): Promise<Document<T> | false>`
 
 Method to delete the first found **Document** by a given set of `FindByProperty` options. Returns the deleted **Document** or false, if no **Document** was found.
 
@@ -101,7 +103,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.deleteOneBy({ name: Like('flotsam') });
 ```
 
-### `collection.deleteOneById(id: string): Promise<Document | false>`
+#### `collection.deleteOneById(id: string): Promise<Document | false>`
 
 Method to delete the first found **Document** by a given id. Returns the deleted **Document** or false, if no **Document** was found.
 
@@ -114,7 +116,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.deleteOneById('<ObjectId>');
 ```
 
-### `collection.deleteMany(findOptions: FindOptions<T>): Promise<Document<T>[] | false>`
+#### `collection.deleteMany(findOptions: FindOptions<T>): Promise<Document<T>[] | false>`
 
 Method to delete any number of **Documents** according to the given `FindOptions`. Returns the deleted **Documents** or false, if no **Documents** were found.
 
@@ -129,7 +131,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.deleteMany({ where: { name: Like('flotsam') } });
 ```
 
-### `collection.findOne(findOptions: FindOptions<T>): Promise<Document<T> | null>`
+#### `collection.findOne(findOptions: FindOptions<T>): Promise<Document<T> | null>`
 
 Method to select a **Document** according to the given `FindOptions`. Returns the **Document** or `null` if no result was found.
 
@@ -143,7 +145,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.findOne({ where: { name: Like('flotsam') } });
 ```
 
-### `collection.findOneBy(findOptions: FindByProperty<T>): Promise<Document<T> | null>`
+#### `collection.findOneBy(findOptions: FindByProperty<T>): Promise<Document<T> | null>`
 
 Method to select a **Document** according to the given `FindByProperty` options. Returns the **Document** or `null` if no **Document** was found.
 
@@ -157,7 +159,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.findOne({ name: Like('flotsam') });
 ```
 
-### `collection.findOneById(id: string): Promise<Document<T> | null>`
+#### `collection.findOneById(id: string): Promise<Document<T> | null>`
 
 Method to select the first found **Document** by a given id. Returns the **Document** or null, if no **Document** was found.
 
@@ -170,7 +172,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.findOneById('<ObjectId>');
 ```
 
-### `collection.findMany(findOptions: FindOptions<T>): Promise<Document<T>[]>`
+#### `collection.findMany(findOptions: FindOptions<T>): Promise<Document<T>[]>`
 
 Method to select any number of **Documents** according to the given `FindOptions`. Returns an Array containing the selected **Documents**.
 
@@ -184,7 +186,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.findMany({ where: { name: Like('flotsam') } });
 ```
 
-### `collection.findManyBy(findOptions: FindByProperty<T>): Promise<Document<T>[]>`
+#### `collection.findManyBy(findOptions: FindByProperty<T>): Promise<Document<T>[]>`
 
 Method to select any number of **Documents** according to the given `FindByProperty` options. Returns an Array containing the selected **Documents**.
 
@@ -198,7 +200,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.findMany({ name: Like('flotsam') });
 ```
 
-### `collection.updateOne(findOptions: FindOptions<T>, data: Partial<T>): Promise<Document<T> | false>`
+#### `collection.updateOne(findOptions: FindOptions<T>, data: Partial<T>): Promise<Document<T> | false>`
 
 Method to select the first **Document** from the collection that satisfies a given set of `FindOptions` and update it with the given data. The Method returns the updated **Document** or false, if the operation was unsuccessful.
 
@@ -212,7 +214,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.updateOne({ where: { name: Like('flotsam') } }, { name: 'jetsam' });
 ```
 
-### `collection.updateOneBy(findOptions: FindByProperty<T>, data: Partial<T>): Promise<Document<T> | false>`
+#### `collection.updateOneBy(findOptions: FindByProperty<T>, data: Partial<T>): Promise<Document<T> | false>`
 
 Method to select the first **Document** from the collection that satisfies a given set of `FindByProperty` options and update it with the given data. The Method returns the updated **Document** or false, if the operation was unsuccessful.
 
@@ -226,7 +228,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.updateOneBy({ name: Like('flotsam') }, { name: 'jetsam' });
 ```
 
-### `collection.updateOneById(id: string, data: Partial<T>): Promise<Document<T> | false>`
+#### `collection.updateOneById(id: string, data: Partial<T>): Promise<Document<T> | false>`
 
 Method to select the first found **Document** by a given id and update it with the given data. The Method returns the updated **Document** or false, if the operation was unsuccessful.
 
@@ -239,7 +241,7 @@ const collection = await db.collect<{ name: string }>('collection')
 const result = await collection.updateOneById(<ObjectId>, { name: 'jetsam' });
 ```
 
-### `collection.updateMany(findOptions: FindOptions<T>, data: Partial<T>): Promise<Document<T>[] | false>`
+#### `collection.updateMany(findOptions: FindOptions<T>, data: Partial<T>): Promise<Document<T>[] | false>`
 
 Method to select any number of **Documents** according to the given `FindOptions` and update them with the given data. Returns an Array containing the updated **Documents** or false, if the operation was unsuccessful.
 
@@ -254,7 +256,7 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.updateMany({ where: { name: Like('flotsam') } }, { name: 'jetsam' });
 ```
 
-### `collection.updateManyBy(findOptions: FindByProperty<T>, data: Partial<T>): Promise<Document<T>[] | false>`
+#### `collection.updateManyBy(findOptions: FindByProperty<T>, data: Partial<T>): Promise<Document<T>[] | false>`
 
 Method to select any number of **Documents** according to the given `FindByProperty` options and update them with the given data. Returns an Array containing the updated **Documents** or false, if the operation was unsuccessful.
 
