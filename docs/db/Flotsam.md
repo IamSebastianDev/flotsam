@@ -105,7 +105,7 @@ Method to emit a `FlotsamEvent` with a specific Payload. This is the method used
 
 ### `flotsam.jettison(namespace: string, soft?: boolean = false): Promise<boolean>`
 
-Method to remove a **Collection** from the physical storage directory or just the collection cache, when the `soft` argument is set to true.
+Method to remove a **Collection** from the physical storage directory or the collection cache, when the `soft` argument is set to true.
 
 ```ts
 import { Flotsam } from 'flotsam/db';
