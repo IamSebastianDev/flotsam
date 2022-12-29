@@ -21,23 +21,25 @@ export type FindOptions<T> = {
 };
 ```
 
-### `where: FindByProperty<Partial<T> | FindByProperty<Partial<T>>[]`
+### Properties
+
+#### `where: FindByProperty<Partial<T> | FindByProperty<Partial<T>>[]`
 
 `where` describes the properties to search for. All properties inside a `where` property must match the values in a **Document** for the **Document** to be considered matched. If multiple different conditions should be checked independently of each other, pass an array of `FindByProperty` options.
 
-### `order: { property: keyof T | '_id', by: 'ASC' | 'DESC' }`
+#### `order: { property: keyof T | '_id', by: 'ASC' | 'DESC' }`
 
 `order` is an object used to describe the property to sort by as well as the sort order, ascending or descending. The results can be sorted by any property contained in the **Document**, even if it's not included in the search.
 
-### `skip: number`
+#### `skip: number`
 
 `skip` describes the amount of found **Documents** to skip before returning results.
 
-### `take: number`
+#### `take: number`
 
 `take` describes the number of found **Documents** to return as result.
 
-### `limit: number`
+#### `limit: number`
 
 `limit` describes the number of **Documents** to operate on.
 
