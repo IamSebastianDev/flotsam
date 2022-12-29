@@ -2,7 +2,7 @@
 
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { __root } from '../../utils';
+import { FlotsamOperationError, __root } from '../../utils';
 import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler, Validator } from '../../types';
 import { Collection } from './Collection';
 import { Loq } from './Loq';
@@ -175,6 +175,12 @@ export class Flotsam {
      */
 
     async connect(callback?: Callback | null, error?: ErrorHandler): Promise<boolean> {
+        if (this.connected) {
+            const e = new FlotsamOperationError('Already connected.');
+            this.emit('error', e);
+            if (error && typeof error === 'function') error(e);
+        }
+
         return new Promise(async (res, rej) => {
             try {
                 /**
