@@ -616,6 +616,10 @@ export class Collection<T extends Record<string, unknown>> {
                         .filter(([, value]) => evaluateFindOptions(value.toDoc(), findOptions))
                         .map(([, doc]) => doc.toDoc());
 
+                    if (findOptions.limit && items.length > findOptions.limit) {
+                        items.length = findOptions.limit;
+                    }
+
                     if (findOptions.order) {
                         const { by, property } = findOptions.order;
                         if (by && property) items.sort(sortByProperty(property, by));
@@ -627,10 +631,6 @@ export class Collection<T extends Record<string, unknown>> {
 
                     if (findOptions.take) {
                         items.length = findOptions.take;
-                    }
-
-                    if (findOptions.limit && items.length > findOptions.limit) {
-                        items.length = findOptions.limit;
                     }
 
                     res(items);
