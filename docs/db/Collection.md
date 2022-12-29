@@ -11,9 +11,11 @@ the `collect()` method will return the cached **Collection**.
 
 ### `new Collection<T>(ctx: Flotsam, namespace: string, validationStrategy: Validator<T>): Collection<T>`
 
+The constructor of the **Collection** is used to assign the Database Context, the namespace passed to the Database's `collect()` method as well as the validator that is supposed to be used with the **Collection**. The instantiation of the **Collection** is usually handled by the passed **Fløtsam** instance and shouldn't be initiated manually.
+
 ### `collection.count: Promise<number>`
 
-Returns the number of **Documents** currently stored in the collection as a `Promise`.
+Returns the number of **Documents** currently stored in the **Collection** as a `Promise`.
 
 ```ts
 const count = await collection.count;
@@ -23,7 +25,7 @@ console.log(count);
 
 ### `collection.entries: Promise<Document<T>[]>`
 
-Returns a copy of all **Documents** stored in the collection as a `Promise`.
+Returns a copy of all **Documents** stored in the **Collection** as a `Promise`.
 
 ```ts
 const entries = await collection.entries;
@@ -33,11 +35,11 @@ console.log(entries);
 
 ### `collection.deserialize(): Promise<boolean>`
 
-Method used to deserialize the **Collection**. This will load all records stored in the namespaced folder into the internal cache. The deserialization process will return true if successful. The serialization and deserialization of the collection is usually handled by the passed **Fløtsam** instance and shouldn't be initiated manually.
+Method used to deserialize the **Collection**. This will load all records stored in the namespaced folder into the internal cache. The deserialization process will return true if successful. The serialization and deserialization of the **Collection** is usually handled by the passed **Fløtsam** instance and shouldn't be initiated manually.
 
 ### `collection.serialize(): Promise<boolean>`
 
-Method used to serialize the **Collection**. This will store all objects in the internal cache as record in the namespaced folder. The process will return true if successful. The serialization and deserialization of the collection is usually handled by the passed **Fløtsam** instance and shouldn't be initiated manually.
+Method used to serialize the **Collection**. This will store all objects in the internal cache as record in the namespaced folder. The process will return true if successful. The serialization and deserialization of the **Collection** is usually handled by the passed **Fløtsam** instance and shouldn't be initiated manually.
 
 ### `collection.jettison(): Promise<boolean>`
 
