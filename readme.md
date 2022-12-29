@@ -111,6 +111,71 @@ const deleted = await jetsam.deleteOneById(found.id);
 await db.close();
 ```
 
+### Evaluators
+
+While using **Find Options** is powerful, **Evaluators** make these Find Options even more powerful by providing functions that help evaluate the values of a record for something matching your search criteria.
+
+> Read more about [**Evaluator Functions**](./docs/evaluators/evaluators.md)
+
+```ts
+import { Flotsam } from 'flotsam/db';
+import { Like, GreaterThan } from 'flotsam/evaluators';
+
+const db = new Flotsam({ root: '.store' });
+await db.connect();
+
+type Jetsam = {
+    description: string;
+    weight: number;
+};
+
+const jetsam = await db.collect<Jetsam>('jetsam');
+
+const item = await jetsam.findOne({
+    where: {
+        // The `Like` evaluator will match any string that
+        // contains the supplied argument
+        description: Like('floating'),
+        // The `GreaterThan` evaluator will match any number
+        // that is greater than the supplied argument
+        weight: GreaterThan(10),
+    },
+});
+
+await db.close();
+```
+
+### Schema validation
+
+A **Collection** can receive a second optional argument to work as a **Schema Validator**. This will allow a more granular validation instead of strongly typing the collection, and will also ensure runtime validation of inserts and updates.
+
+> Read more about [**Schema Validation**](./docs/validators/schema-validation.md)
+
+```ts
+import { Flotsam } from 'flotsam/db';
+import { NotNull, IsText, IsInt } from 'flotsam/validators';
+
+const db = new Flotsam({ root: '.store' });
+await db.connect();
+
+type Jetsam = {
+    description: string;
+    weight: number;
+};
+
+// Add Schema Validation to the collection for more granular
+// validation and runtime checks when inserting or updating.
+
+const jetsam = await db.collect<Jetsam>('jetsam', {
+    validate: {
+        description: [NotNull, IsText({ min: 200 })],
+        weight: [NotNull, IsInt({ min: 10 })],
+    },
+});
+
+await db.close();
+```
+
 ## Contributing
 
 If you would like to contribute, take a look at the [Contribution Guide](./contributing.md). Contributors of any skill level are

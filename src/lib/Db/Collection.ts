@@ -616,6 +616,10 @@ export class Collection<T extends Record<string, unknown>> {
                         .filter(([, value]) => evaluateFindOptions(value.toDoc(), findOptions))
                         .map(([, doc]) => doc.toDoc());
 
+                    if (findOptions.limit && items.length > findOptions.limit) {
+                        items.length = findOptions.limit;
+                    }
+
                     if (findOptions.order) {
                         const { by, property } = findOptions.order;
                         if (by && property) items.sort(sortByProperty(property, by));
@@ -627,10 +631,6 @@ export class Collection<T extends Record<string, unknown>> {
 
                     if (findOptions.take) {
                         items.length = findOptions.take;
-                    }
-
-                    if (findOptions.limit && items.length > findOptions.limit) {
-                        items.length = findOptions.limit;
                     }
 
                     res(items);
@@ -680,7 +680,8 @@ export class Collection<T extends Record<string, unknown>> {
 
     /**
      * @description
-     * Collection method to select the first `Document` according to the given find options.
+     * Method to select a `Document` according to the given `FindOptions`.
+     * Returns the `Document` or `null` if no result was found.
      *
      * ---
      *
@@ -1039,6 +1040,59 @@ export class Collection<T extends Record<string, unknown>> {
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
                     const items = await this.getEntriesByFindOptions(findOptions);
+
+                    if (items.length === 0) {
+                        return res(false);
+                    }
+
+                    const updated = await Promise.all(
+                        items.map(async (item) => {
+                            const updated = await this.update(item, data);
+                            if (updated) this.ctx.emit('update');
+                            return updated;
+                        })
+                    );
+
+                    return res(updated.every(isTruthy) ? updated : false);
+                });
+            })
+        );
+    }
+
+    /**
+     * @description
+     * Collection method to select a number of `Documents` according to the given findByProperty options
+     * and update them with a given set of data.
+     *
+     * ---
+     *
+     *@example
+     * ```ts
+     * import { Flotsam } from "flotsam";
+     * import { Like } from "flotsam/evaluator"
+     *
+     * const collection = await db.collect<{ name: string }>('collection')
+     *
+     * // Search for any number of Documents containing a `name` property including 'flotsam'
+     * // and update them
+     * const result = await collection.updateManyBy({name: Like('flotsam') }, { name: 'jetsam' });
+     * ```
+     *
+     * The full set of `FindOptions` applies, meaning the results can filtered, limited, skipped and orderer
+     * before executing the update operation.
+     *
+     * ---
+     *
+     * @param { FindByProperty } findOptions - the given FindOptions to select `Documents` by.
+     * @param { Record<string, unknown> } data - a object containing the data to update.
+     * @returns { Promise<Document[]> } an Array of Documents.
+     */
+
+    async updateManyBy(findOptions: FindByProperty<T>, data: Partial<T>): Promise<Document<T>[] | false> {
+        return this.#queue.enqueue(
+            new Promise((res, rej) => {
+                return safeAsyncAbort(this.rejector(rej), async () => {
+                    const items = await this.getEntriesByFindOptions({ where: findOptions });
 
                     if (items.length === 0) {
                         return res(false);

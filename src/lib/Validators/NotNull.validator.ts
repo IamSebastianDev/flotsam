@@ -16,7 +16,7 @@ import { FlotsamValidationError } from '../../utils';
  *
  * const collection = await db.collect<{ name: string }>('collection', {
  *      validate: {
- *          name: [NotNull, IsType('string')]
+ *          name: [NotNull, IsType({type: 'string'})]
  *      }
  * });
  *

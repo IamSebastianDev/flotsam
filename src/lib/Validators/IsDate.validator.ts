@@ -6,7 +6,7 @@ import { FlotsamValidationError } from '../../utils';
 /**
  * @throws
  * @description
- * Evaluator Function to validate a Value to be a valid Date.
+ * Validator function to validate a Value to be a valid Date.
  *
  * -----
  *@example
