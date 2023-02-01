@@ -1,9 +1,11 @@
 /** @format */
 
 import { Handler, SetterFunction, Subscription, Subscriber, MapFunction } from '../../types';
+import { FlotsamObservableError } from '../../utils';
 import { ObjectId } from './ObjectId';
 
 export class Observable<T> {
+    #completed: boolean = false;
     #$!: T;
     #subscribers: Handler<T>[] = [];
 
@@ -34,6 +36,12 @@ export class Observable<T> {
     }
 
     subscribe(subscriber: Subscription<T>): Subscriber<T> {
+        if (this.#completed) {
+            throw new FlotsamObservableError(
+                'The Observable has already completed and does no longer accept subscribers.'
+            );
+        }
+
         let disposeAfterEmit = false;
         const subscriptionId = new ObjectId();
 
@@ -77,5 +85,10 @@ export class Observable<T> {
         });
 
         return observer;
+    }
+
+    complete() {
+        this.#completed = true;
+        this.#subscribers = [];
     }
 }
