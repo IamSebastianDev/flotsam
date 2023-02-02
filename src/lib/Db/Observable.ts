@@ -8,6 +8,7 @@ export class Observable<T> {
     #completed: boolean = false;
     #$!: T;
     #subscribers: Handler<T>[] = [];
+    #onComplete?: (ctx: this) => void;
 
     constructor(value?: T, setter?: SetterFunction<T>) {
         if (value) {
@@ -90,5 +91,13 @@ export class Observable<T> {
     complete() {
         this.#completed = true;
         this.#subscribers = [];
+
+        if (this.#onComplete) {
+            this.#onComplete(this);
+        }
+    }
+
+    onComplete(callback: (ctx: this) => void) {
+        this.#onComplete = callback;
     }
 }
