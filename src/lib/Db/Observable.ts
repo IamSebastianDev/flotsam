@@ -62,7 +62,7 @@ export class Observable<T> {
         this.#subscribers.push({
             subscriptionId,
             handlerFunction: (value, previousValue) => {
-                subscriber(value), previousValue;
+                subscriber(value, previousValue);
 
                 if (disposeAfterEmit) {
                     dispose();
