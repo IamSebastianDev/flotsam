@@ -8,10 +8,19 @@ import { ObjectId } from './ObjectId';
 import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
 import { Queue } from './Queue';
-import type { Document, Rejector, FindOptions, FindByProperty, DocumentInit, Validator } from '../../types';
+import type {
+    Document,
+    Rejector,
+    FindOptions,
+    FindByProperty,
+    DocumentInit,
+    Validator,
+    ObservedQuery,
+} from '../../types';
 import { evaluateFindOptions } from './evaluateFindOptions';
 import { Crypto } from './Crypto';
 import { FlotsamError } from '../../utils/Errors/FlotsamError';
+import { Observable } from './Observable';
 
 /**
  * @Class
@@ -81,12 +90,13 @@ import { FlotsamError } from '../../utils/Errors/FlotsamError';
  * created, a `Flotsam` instance needs to be passed as well as the namespace.
  */
 
-export class Collection<T extends Record<string, unknown>> {
+export class Collection<T extends Record<PropertyKey, unknown>> {
     #dir: string;
     #files: string[] = [];
     #documents: Map<string, JSONDocument<T>> = new Map();
     #queue: Queue = new Queue();
     #crypt: Crypto | null = null;
+    #observedQueries = [];
     constructor(private ctx: Flotsam, private namespace: string, private validationStrategy?: Validator<T>) {
         this.#dir = resolve(ctx.root, this.namespace);
         this.#crypt = ctx.auth ? new Crypto(ctx.auth) : null;
@@ -99,6 +109,8 @@ export class Collection<T extends Record<string, unknown>> {
             await this.serialize();
         });
     }
+
+    observe<E extends (...args: unknown[]) => any>(observedQuery: ObservedQuery<T, E>): Observable<ReturnType<E>> {}
 
     /**
      * @type { Promise<number> }
