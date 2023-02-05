@@ -96,7 +96,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
     #documents: Map<string, JSONDocument<T>> = new Map();
     #queue: Queue = new Queue();
     #crypt: Crypto | null = null;
-    #observedQueries = [];
+    #observedQueries: Array<ObservedQuery<T>> = [];
     constructor(private ctx: Flotsam, private namespace: string, private validationStrategy?: Validator<T>) {
         this.#dir = resolve(ctx.root, this.namespace);
         this.#crypt = ctx.auth ? new Crypto(ctx.auth) : null;
@@ -110,7 +110,26 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         });
     }
 
-    observe<E extends (...args: unknown[]) => any>(observedQuery: ObservedQuery<T, E>): Observable<ReturnType<E>> {}
+    async observe(observedFindOptions: FindOptions<T>): Promise<Observable<Document<T>[]>> {
+        const initialQueryValue = await this.getEntriesByFindOptions({ ...observedFindOptions });
+
+        const queryId = new ObjectId();
+        const queryObserver = new Observable(initialQueryValue);
+        queryObserver.onComplete(() => {
+            this.#observedQueries.slice(
+                this.#observedQueries.findIndex((queryObserver) => ObjectId.compare(queryId, queryObserver.queryId)),
+                1
+            );
+        });
+
+        this.#observedQueries.push({
+            queryId,
+            queryObserver,
+            findOptions: observedFindOptions,
+        });
+
+        return queryObserver;
+    }
 
     /**
      * @type { Promise<number> }
@@ -317,6 +336,16 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
                 this.#documents.set(document._id.str, document);
 
                 this.ctx.emit('insert', document.toDoc());
+
+                this.#observedQueries.forEach(({ queryObserver, findOptions }) => {
+                    const foundDocs = [document]
+                        .map((doc) => doc.toDoc())
+                        .filter((doc) => evaluateFindOptions(doc, findOptions));
+
+                    if (foundDocs.length > 0) {
+                        queryObserver.next(foundDocs);
+                    }
+                });
 
                 return res(true);
             })
@@ -879,6 +908,14 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
 
                 await writeFile(resolve(this.#dir, document.id), content, 'utf8');
                 this.#documents.set(document.id, updated);
+
+                this.#observedQueries.forEach(async ({ queryObserver, findOptions }) => {
+                    const foundDocs = [document].filter((doc) => evaluateFindOptions(doc, findOptions));
+
+                    if (foundDocs.length > 0) {
+                        queryObserver.next(foundDocs);
+                    }
+                });
 
                 return res(updated.toDoc());
             });
