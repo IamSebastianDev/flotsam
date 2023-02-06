@@ -312,6 +312,31 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         );
     }
 
+    private processEntries(findOptions: FindOptions<T>) {
+        let items = [...this.#documents.entries()]
+            .filter(([, value]) => evaluateFindOptions(value.toDoc(), findOptions))
+            .map(([, doc]) => doc.toDoc());
+
+        if (findOptions.limit && items.length > findOptions.limit) {
+            items.length = findOptions.limit;
+        }
+
+        if (findOptions.order) {
+            const { by, property } = findOptions.order;
+            if (by && property) items.sort(sortByProperty(property, by));
+        }
+
+        if (findOptions.skip) {
+            items = items.slice(findOptions.skip, -1);
+        }
+
+        if (findOptions.take) {
+            items.length = findOptions.take;
+        }
+
+        return items;
+    }
+
     //@Insert Operations
 
     /**
@@ -343,7 +368,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
                         .filter((doc) => evaluateFindOptions(doc, findOptions));
 
                     if (foundDocs.length > 0) {
-                        queryObserver.next(foundDocs);
+                        queryObserver.next(this.processEntries(findOptions));
                     }
                 });
 
@@ -653,28 +678,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    let items = [...this.#documents.entries()]
-                        .filter(([, value]) => evaluateFindOptions(value.toDoc(), findOptions))
-                        .map(([, doc]) => doc.toDoc());
-
-                    if (findOptions.limit && items.length > findOptions.limit) {
-                        items.length = findOptions.limit;
-                    }
-
-                    if (findOptions.order) {
-                        const { by, property } = findOptions.order;
-                        if (by && property) items.sort(sortByProperty(property, by));
-                    }
-
-                    if (findOptions.skip) {
-                        items = items.slice(findOptions.skip, -1);
-                    }
-
-                    if (findOptions.take) {
-                        items.length = findOptions.take;
-                    }
-
-                    res(items);
+                    res(this.processEntries(findOptions));
                 });
             })
         );
@@ -909,11 +913,11 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
                 await writeFile(resolve(this.#dir, document.id), content, 'utf8');
                 this.#documents.set(document.id, updated);
 
-                this.#observedQueries.forEach(async ({ queryObserver, findOptions }) => {
+                this.#observedQueries.forEach(({ queryObserver, findOptions }) => {
                     const foundDocs = [document].filter((doc) => evaluateFindOptions(doc, findOptions));
 
                     if (foundDocs.length > 0) {
-                        queryObserver.next(foundDocs);
+                        queryObserver.next(this.processEntries(findOptions));
                     }
                 });
 
