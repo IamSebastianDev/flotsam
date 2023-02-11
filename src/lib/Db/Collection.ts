@@ -314,12 +314,9 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
 
     private processEntries(findOptions: FindOptions<T>) {
         let items = [...this.#documents.entries()]
+            .slice(0, findOptions.limit ?? -1)
             .filter(([, value]) => evaluateFindOptions(value.toDoc(), findOptions))
             .map(([, doc]) => doc.toDoc());
-
-        if (findOptions.limit && items.length > findOptions.limit) {
-            items.length = findOptions.limit;
-        }
 
         if (findOptions.order) {
             const { by, property } = findOptions.order;
