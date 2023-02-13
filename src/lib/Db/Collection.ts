@@ -110,6 +110,38 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         });
     }
 
+    /**
+     * @public
+     * @description
+     * Method to create a Observable that will emit every time the given set of Find Options is
+     * matched against a inserted or updated Document.
+     *
+     * ---
+     *
+     * ```ts
+     * const collection = await db.collect<{ name: string }>('flotsam');
+     * const queryObserver$ = await collection.observe({ where: { name: 'flotsam' }});
+     *
+     * // register a Subscriber on the created Observable
+     * queryObserver$.subscribe((documents) => { console.log(documents) });
+     *
+     * // insert a document to emit from the Observable
+     * await collection.insertOne({ name: 'flotsam' });
+     *
+     * // The emitting Observable will now log the Document to the console
+     * // Document: { name: 'flotsam', _id: <ObjectId> }
+     *
+     * ```
+     *
+     * ---
+     *
+     * @param { FindOptions<T> } observedFindOptions - The set of Find Options to match during
+     * query operations. If a inserted or updated Document matches the Find Options,
+     * the find options will be executed against the full set of Documents
+     *
+     * @returns { Promise<Observable<Document<T>[]>> } an Observable
+     */
+
     async observe(observedFindOptions: FindOptions<T>): Promise<Observable<Document<T>[]>> {
         const initialQueryValue = await this.getEntriesByFindOptions({ ...observedFindOptions });
 
