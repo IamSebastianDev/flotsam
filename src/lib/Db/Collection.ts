@@ -314,7 +314,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
 
     private processEntries(findOptions: FindOptions<T>) {
         let items = [...this.#documents.entries()]
-            .slice(0, findOptions.limit ?? -1)
+            .slice(0, findOptions.limit)
             .filter(([, value]) => evaluateFindOptions(value.toDoc(), findOptions))
             .map(([, doc]) => doc.toDoc());
 
