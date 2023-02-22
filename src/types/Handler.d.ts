@@ -2,5 +2,5 @@
 
 export type Handler<T> = {
     subscriptionId: ObjectId;
-    handlerFunction: (value: T, previousValue?: T) => void;
+    action: (value: T, previousValue?: T) => void;
 };
