@@ -7,7 +7,7 @@ name: Development CI
 
 on:
   pull_request:
-    branches: ["development"]
+    branches: ["development", "main"]
 
 jobs:
   ci:
