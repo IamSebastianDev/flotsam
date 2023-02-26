@@ -15,4 +15,16 @@ export {
     Unsafe,
     Contains,
 } from './Evaluators';
-export { NotNull, IsType, IsArray, IsInt, IsText, IsNumber, IsString, IsDate, ValidateNested } from './Validators';
+export {
+    NotNull,
+    IsType,
+    IsArray,
+    IsInt,
+    IsText,
+    IsNumber,
+    IsString,
+    IsDate,
+    ValidateNested,
+    RecordFrom,
+    CollectionOf,
+} from './Validators';
