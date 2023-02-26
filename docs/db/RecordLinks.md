@@ -2,7 +2,7 @@
 
 # Record Links
 
-Analogous to relations in a relational database, **Record Links** can be used to create connections between different **Collections**. This can be used to easily organize your data schema.
+Analogous to relations in a relational database, **Record Links** can be used to create connections between different **Collections**. This can be used to organize your data schema.
 
 ## Record Link Tokens
 
@@ -33,7 +33,7 @@ The `Link()` function is used to create a `Record Link Token` programmatically. 
 
 ## Example
 
-Using a Record Link is straight forward. During findOperations, all `Records` linked in a `Record` will be pulled from their respective **Collections** and inserted into the returned **Document** recursively.
+During findOperations, all `Records` linked in a `Record` will be pulled from their respective **Collections** and inserted into the returned **Document** recursively.
 
 ```ts
 import { Flotsam, Link } from 'flotsam/db';
