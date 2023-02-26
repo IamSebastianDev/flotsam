@@ -38,7 +38,9 @@ export const CollectionOf = (collection: string | Collection<Record<PropertyKey,
                     return parsedNamespace === namespace && ObjectId.is(id);
                 }
 
-                return false;
+                throw new FlotsamValidationError(
+                    `Expected property '${propertyName}'[${index}] to be a valid RecordLink Token.`
+                );
             });
         }
 
