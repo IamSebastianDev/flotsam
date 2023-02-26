@@ -14,14 +14,14 @@ import { ObjectId } from './ObjectId';
  * @returns
  */
 
-export const Link = (
-    collection: string | Collection<Record<PropertyKey, unknown>>,
+export const Link = <T, K extends Record<PropertyKey, unknown>>(
+    collection: T | Collection<K>,
     recordId: string | ObjectId
-): RecordLink => {
+): RecordLink<T> => {
     let namespace = collection;
 
     if (collection instanceof Collection && 'namespace' in collection) {
-        namespace = collection.namespace;
+        namespace = collection.namespace as T;
     }
 
     let id = recordId instanceof ObjectId ? recordId.valueOf() : ObjectId.is(recordId) ? recordId : null;
@@ -30,5 +30,5 @@ export const Link = (
         throw new FlotsamError(`Incorrect arguments supplied to create a valid Record Link Token.`);
     }
 
-    return `${namespace}:${id}`;
+    return `${namespace}:${id}` as RecordLink<T>;
 };

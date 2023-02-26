@@ -1,3 +1,3 @@
 /** @format */
 
-export type RecordLink = `${string}:${string}`;
+export type RecordLink<T = ''> = `${string}:${string}`;
