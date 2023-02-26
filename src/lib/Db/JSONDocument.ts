@@ -7,7 +7,7 @@ import { ObjectId } from './ObjectId';
  * @description
  * The `JSONDocument` class is used to represent instances of `Documents` inside a `Collection`.
  */
-export class JSONDocument<T extends Record<string, unknown>> {
+export class JSONDocument<T extends Record<PropertyKey, unknown>> {
     data: T;
     _id: ObjectId;
     constructor(data: DocumentInit<T>, private validationStrategy?: Validator<T>) {
