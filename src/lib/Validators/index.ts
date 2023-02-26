@@ -8,7 +8,7 @@ export { IsInt } from './IsInt.validator';
 export { IsText } from './IsText.validator';
 export { IsNumber } from './IsNumber.validator';
 export { IsString } from './IsString.validator';
-export type { ValidatorFunction } from '../../types';
+export type { ValidatorFunction, RecordLink } from '../../types';
 export { IsDate } from './IsDate.validator';
 export { ValidateNested } from './ValidateNested';
 export { CollectionOf } from './CollectionOf.validator';
