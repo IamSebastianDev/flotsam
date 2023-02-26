@@ -30,6 +30,6 @@ export const RecordFrom = (collection: string | Collection<Record<PropertyKey, u
             return parsedNamespace === namespace && ObjectId.is(id);
         }
 
-        return false;
+        throw new FlotsamValidationError(`Expected property '${propertyName}' to be a valid RecordLink.`);
     };
 };
