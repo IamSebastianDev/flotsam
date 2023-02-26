@@ -97,8 +97,8 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
     #queue: Queue = new Queue();
     #crypt: Crypto | null = null;
     #observedQueries: Array<ObservedQuery<T>> = [];
-    constructor(private ctx: Flotsam, private namespace: string, private validationStrategy?: Validator<T>) {
-        this.#dir = resolve(ctx.root, this.namespace);
+    constructor(private ctx: Flotsam, private _namespace: string, private validationStrategy?: Validator<T>) {
+        this.#dir = resolve(ctx.root, this._namespace);
         this.#crypt = ctx.auth ? new Crypto(ctx.auth) : null;
 
         process.on('SIGINT', async () => {
@@ -108,6 +108,10 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         process.on('SIGTERM', async () => {
             await this.serialize();
         });
+    }
+
+    get namespace() {
+        return this._namespace;
     }
 
     /**
