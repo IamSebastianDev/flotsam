@@ -1,6 +1,6 @@
 /** @format */
 
-export { Flotsam, Collection, ObjectId, JSONDocument } from './Db';
+export { Flotsam, Collection, ObjectId, JSONDocument, Link } from './Db';
 export {
     Exactly,
     GreaterThan,
