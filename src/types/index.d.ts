@@ -1,7 +1,7 @@
 /** @format */
 export type { FlotsamInit } from './FlotsamInit';
 export type { FlotsamEvent } from './FlotsamEvent';
-export type { Subscriber } from './Subscriber';
+export type { HandlerFunction } from './HandlerFunction';
 export type { Unsubscriber } from './Unsubscriber';
 export type { DocumentInit } from './DocumentInit';
 export type { QueueTask } from './QueueTask';
@@ -21,3 +21,10 @@ export type { IntegerValidatorInit } from './IntegerValidatorInit';
 export type { TextValidatorInit } from './TextValidatorInit';
 export type { TypeValidatorInit } from './TypeValidatorInit';
 export type { ValidationStrategy } from './ValidationStrategy';
+export type { SetterFunction } from './SetterFunction';
+export type { Subscription } from './Subscription';
+export type { Subscriber } from './Subscriber';
+export type { MapFunction } from './MapFunction';
+export type { Handler } from './Handler';
+export type { ObservedQuery } from './ObservedQuery';
+export type { RecordLink } from './RecordLink';

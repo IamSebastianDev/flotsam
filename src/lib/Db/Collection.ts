@@ -8,10 +8,21 @@ import { ObjectId } from './ObjectId';
 import { JSONDocument } from './JSONDocument';
 import { resolve } from 'node:path';
 import { Queue } from './Queue';
-import type { Document, Rejector, FindOptions, FindByProperty, DocumentInit, Validator } from '../../types';
+import type {
+    Document,
+    Rejector,
+    FindOptions,
+    FindByProperty,
+    DocumentInit,
+    Validator,
+    ObservedQuery,
+    RecordLink,
+} from '../../types';
 import { evaluateFindOptions } from './evaluateFindOptions';
 import { Crypto } from './Crypto';
 import { FlotsamError } from '../../utils/Errors/FlotsamError';
+import { Observable } from './Observable';
+import { isRecordLink } from '../Validators/isRecordLink.util';
 
 /**
  * @Class
@@ -81,14 +92,15 @@ import { FlotsamError } from '../../utils/Errors/FlotsamError';
  * created, a `Flotsam` instance needs to be passed as well as the namespace.
  */
 
-export class Collection<T extends Record<string, unknown>> {
+export class Collection<T extends Record<PropertyKey, unknown>> {
     #dir: string;
     #files: string[] = [];
     #documents: Map<string, JSONDocument<T>> = new Map();
     #queue: Queue = new Queue();
     #crypt: Crypto | null = null;
-    constructor(private ctx: Flotsam, private namespace: string, private validationStrategy?: Validator<T>) {
-        this.#dir = resolve(ctx.root, this.namespace);
+    #observedQueries: Array<ObservedQuery<T>> = [];
+    constructor(private ctx: Flotsam, private _namespace: string, private validationStrategy?: Validator<T>) {
+        this.#dir = resolve(ctx.root, this._namespace);
         this.#crypt = ctx.auth ? new Crypto(ctx.auth) : null;
 
         process.on('SIGINT', async () => {
@@ -98,6 +110,63 @@ export class Collection<T extends Record<string, unknown>> {
         process.on('SIGTERM', async () => {
             await this.serialize();
         });
+    }
+
+    get namespace() {
+        return this._namespace;
+    }
+
+    /**
+     * @public
+     * @description
+     * Method to create a Observable that will emit every time the given set of Find Options is
+     * matched against a inserted or updated Document.
+     *
+     * ---
+     *
+     * ```ts
+     * const collection = await db.collect<{ name: string }>('flotsam');
+     * const queryObserver$ = await collection.observe({ where: { name: 'flotsam' }});
+     *
+     * // register a Subscriber on the created Observable
+     * queryObserver$.subscribe((documents) => { console.log(documents) });
+     *
+     * // insert a document to emit from the Observable
+     * await collection.insertOne({ name: 'flotsam' });
+     *
+     * // The emitting Observable will now log the Document to the console
+     * // Document: { name: 'flotsam', _id: <ObjectId> }
+     *
+     * ```
+     *
+     * ---
+     *
+     * @param { FindOptions<T> } observedFindOptions - The set of Find Options to match during
+     * query operations. If a inserted or updated Document matches the Find Options,
+     * the find options will be executed against the full set of Documents
+     *
+     * @returns { Promise<Observable<Document<T>[]>> } an Observable
+     */
+
+    async observe(observedFindOptions: FindOptions<T>): Promise<Observable<Document<T>[]>> {
+        const initialQueryValue = await this.getEntriesByFindOptions({ ...observedFindOptions });
+
+        const queryId = new ObjectId();
+        const queryObserver = new Observable(initialQueryValue);
+        queryObserver.onComplete(() => {
+            this.#observedQueries.slice(
+                this.#observedQueries.findIndex((queryObserver) => ObjectId.compare(queryId, queryObserver.queryId)),
+                1
+            );
+        });
+
+        this.#observedQueries.push({
+            queryId,
+            queryObserver,
+            findOptions: observedFindOptions,
+        });
+
+        return queryObserver;
     }
 
     /**
@@ -128,6 +197,10 @@ export class Collection<T extends Record<string, unknown>> {
                 res([...this.#documents.values()].map((doc) => ({ ...doc.toDoc() })));
             })
         );
+    }
+
+    public get documents(): Map<string, JSONDocument<T>> {
+        return this.#documents;
     }
 
     /**
@@ -281,6 +354,58 @@ export class Collection<T extends Record<string, unknown>> {
         );
     }
 
+    private linkRecord(property: RecordLink) {
+        const { collections } = this.ctx;
+        const [namespace, id] = property.split(':');
+
+        const record = collections[namespace]?.documents.get(id);
+
+        if (!record || namespace === this.namespace) {
+            return {};
+        }
+
+        return this.hydrateRecord(record);
+    }
+
+    private hydrateRecord(record: JSONDocument<T>): Document<T> {
+        const hydratedProperties = Object.fromEntries(
+            Object.entries(record.data).map(([key, property]) => {
+                if (Array.isArray(property) && property.every(isRecordLink)) {
+                    return [key, property.map((item) => this.linkRecord(item))];
+                } else if (isRecordLink(property)) {
+                    return [key, this.linkRecord(property)];
+                } else {
+                    return [key, property];
+                }
+            })
+        );
+
+        const doc = { ...record.toDoc(), ...hydratedProperties };
+        return doc;
+    }
+
+    private processEntries(findOptions: FindOptions<T>) {
+        let items = [...this.#documents.entries()]
+            .slice(0, findOptions.limit)
+            .map(([, entry]) => this.hydrateRecord(entry))
+            .filter((doc) => evaluateFindOptions(doc, findOptions));
+
+        if (findOptions.order) {
+            const { by, property } = findOptions.order;
+            if (by && property) items.sort(sortByProperty(property, by));
+        }
+
+        if (findOptions.skip) {
+            items = items.slice(findOptions.skip, -1);
+        }
+
+        if (findOptions.take) {
+            items.length = findOptions.take;
+        }
+
+        return items;
+    }
+
     //@Insert Operations
 
     /**
@@ -305,6 +430,16 @@ export class Collection<T extends Record<string, unknown>> {
                 this.#documents.set(document._id.str, document);
 
                 this.ctx.emit('insert', document.toDoc());
+
+                this.#observedQueries.forEach(({ queryObserver, findOptions }) => {
+                    const foundDocs = [document]
+                        .map((doc) => doc.toDoc())
+                        .filter((doc) => evaluateFindOptions(doc, findOptions));
+
+                    if (foundDocs.length > 0) {
+                        queryObserver.next(this.processEntries(findOptions));
+                    }
+                });
 
                 return res(true);
             })
@@ -612,28 +747,7 @@ export class Collection<T extends Record<string, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    let items = [...this.#documents.entries()]
-                        .filter(([, value]) => evaluateFindOptions(value.toDoc(), findOptions))
-                        .map(([, doc]) => doc.toDoc());
-
-                    if (findOptions.limit && items.length > findOptions.limit) {
-                        items.length = findOptions.limit;
-                    }
-
-                    if (findOptions.order) {
-                        const { by, property } = findOptions.order;
-                        if (by && property) items.sort(sortByProperty(property, by));
-                    }
-
-                    if (findOptions.skip) {
-                        items = items.slice(findOptions.skip, -1);
-                    }
-
-                    if (findOptions.take) {
-                        items.length = findOptions.take;
-                    }
-
-                    res(items);
+                    res(this.processEntries(findOptions));
                 });
             })
         );
@@ -867,6 +981,14 @@ export class Collection<T extends Record<string, unknown>> {
 
                 await writeFile(resolve(this.#dir, document.id), content, 'utf8');
                 this.#documents.set(document.id, updated);
+
+                this.#observedQueries.forEach(({ queryObserver, findOptions }) => {
+                    const foundDocs = [document].filter((doc) => evaluateFindOptions(doc, findOptions));
+
+                    if (foundDocs.length > 0) {
+                        queryObserver.next(this.processEntries(findOptions));
+                    }
+                });
 
                 return res(updated.toDoc());
             });

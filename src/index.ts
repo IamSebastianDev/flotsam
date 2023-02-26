@@ -23,12 +23,16 @@ export {
     ValidateNested,
     Contains,
     IsString,
+    CollectionOf,
+    RecordFrom,
+    Link,
+    Includes,
 } from './lib';
 export type { Collection, ObjectId, JSONDocument } from './lib';
 export type {
     FlotsamInit,
     FlotsamEvent,
-    Subscriber,
+    HandlerFunction,
     Unsubscriber,
     EvaluatorFunction,
     Document,
@@ -41,4 +45,8 @@ export type {
     FindOptions,
     Validator,
     ValidatorFunction,
+    Subscription,
+    Subscriber,
+    MapFunction,
+    RecordLink,
 } from './types';

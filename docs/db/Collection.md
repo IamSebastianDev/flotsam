@@ -271,6 +271,26 @@ const collection = await db.collect<{ name: string }>('collection');
 const result = await collection.updateManyBy({ name: Like('flotsam') }, { name: 'jetsam' });
 ```
 
+#### `collection.observe(observedFindOptions: FindOptions<T>): Promise<Observable<Document<T>[]>>`
+
+Method to create a Observable that will emit to it's Subscribers when the provided `observedFindOptions` match a Document during insert or update operations. The Observable will emit all **Documents** matching the findOptions.
+
+```ts
+const collection = await db.collect<{ name: string }>('flotsam');
+const queryObserver$ = await collection.observe({ where: { name: 'flotsam' } });
+
+// register a Subscriber on the created Observable
+queryObserver$.subscribe((documents) => {
+    console.log(documents);
+});
+
+// insert a document to emit from the Observable
+await collection.insertOne({ name: 'flotsam' });
+
+// The emitting Observable will now log the Document to the console
+// Document: { name: 'flotsam', _id: <ObjectId> }
+```
+
 ## Usage
 
 ```ts

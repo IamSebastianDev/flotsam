@@ -1,6 +1,7 @@
 /** @format */
 
 import test from 'ava';
+import { Link, ObjectId } from '../src/lib';
 import {
     IsText,
     IsInt,
@@ -11,6 +12,8 @@ import {
     IsString,
     IsDate,
     ValidateNested,
+    CollectionOf,
+    RecordFrom,
 } from '../src/lib/Validators';
 
 // IsText
@@ -343,6 +346,50 @@ test('[Validators] ValidateNested correctly validates a value that is not an obj
 test('[Validators] ValidateNested correctly validates a value that is an empty object', (t) => {
     const value = {};
     const validator = ValidateNested({ key: 'test' });
+
+    t.throws(() => validator(value, 'test-property'));
+});
+
+// CollectionOf
+test('[Validators] CollectionOf correctly validates an Array of Record Links', (t) => {
+    const value = [Link('test', new ObjectId())];
+    const validator = CollectionOf('test');
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] CollectionOf correctly validates a nullish value', (t) => {
+    const value = undefined;
+    const validator = CollectionOf('test');
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] CollectionOf correctly validates an Array containing non Record Links items', (t) => {
+    const value = [0];
+    const validator = CollectionOf('test');
+
+    t.throws(() => validator(value, 'test-property'));
+});
+
+// RecordFrom
+test('[Validators] RecordFrom correctly validates a Record Link', (t) => {
+    const value = Link('test', new ObjectId());
+    const validator = RecordFrom('test');
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] RecordFrom correctly validates a nullish value', (t) => {
+    const value = undefined;
+    const validator = RecordFrom('test');
+
+    t.is(validator(value, 'test-property'), true);
+});
+
+test('[Validators] RecordFrom correctly validates a incorrect Record Link token', (t) => {
+    const value = 0;
+    const validator = RecordFrom('test');
 
     t.throws(() => validator(value, 'test-property'));
 });

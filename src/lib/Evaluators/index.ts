@@ -12,3 +12,4 @@ export { RegExp } from './RegExp.evaluator';
 export { Contains } from './Contains.evaluator';
 export { FlotsamEvaluationError } from '../../utils';
 export type { EvaluatorFunction, EvaluatorOptions } from '../../types';
+export { Includes } from './Includes.evaluator';
