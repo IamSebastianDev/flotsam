@@ -17,6 +17,7 @@ The Function receives the value as the first Argument, the propertyName that is 
 -   [Exactly](./Exactly.evaluator.md) to check for an exact match of a given value
 -   [GreaterThan](./GreaterThan.evaluator.md) & [GreaterThanOrEqual](./GreaterThanOrEqual.evaluator.md) to check for numeric values that are larger than a given value
 -   [In](./In.evaluator.md) to check if a checked value is included in a given array
+-   [Includes](./Includes.evaluator.md) to check if a given Evaluator matches an item in an array
 -   [Is](./Is.evaluator.md) to check for a loose match of a given value
 -   [LessThan](./LessThan.evaluator.md) & [LessThanOrEqual](./LessThanOrEqual.evaluator.md) to check for numeric values that are smaller than a given value
 -   [Like](./Like.evaluator.md) for advanced text comparisons
