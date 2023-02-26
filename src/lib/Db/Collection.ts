@@ -360,8 +360,12 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
 
         const record = collections[namespace]?.documents.get(id);
 
-        if (!record || namespace === this.namespace) {
-            return {};
+        if (namespace === this.namespace) {
+            return `<${property}>`;
+        }
+
+        if (!record) {
+            return undefined;
         }
 
         return this.hydrateRecord(record);
@@ -384,11 +388,12 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         return doc;
     }
 
-    private processEntries(findOptions: FindOptions<T>) {
+    private processEntries(findOptions: FindOptions<T>, hydrate: boolean = false) {
         let items = [...this.#documents.entries()]
             .slice(0, findOptions.limit)
-            .map(([, entry]) => this.hydrateRecord(entry))
-            .filter((doc) => evaluateFindOptions(doc, findOptions));
+            .map(([, entry]) => [this.hydrateRecord(entry), entry.toDoc()])
+            .filter(([hydrated]) => evaluateFindOptions(hydrated, findOptions))
+            .map(([hydrated, source]) => (hydrate ? hydrated : source));
 
         if (findOptions.order) {
             const { by, property } = findOptions.order;
@@ -671,7 +676,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const items = await this.getEntriesByFindOptions({ where: findOptions });
+                    const items = await this.getEntriesByFindOptions({ where: findOptions }, true);
 
                     if (items[0] === undefined) {
                         return res(false);
@@ -716,7 +721,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const items = await this.getEntriesByFindOptions(findOptions);
+                    const items = await this.getEntriesByFindOptions(findOptions, true);
 
                     if (items.length === 0) {
                         return res(false);
@@ -743,11 +748,14 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
      * @returns
      */
 
-    private async getEntriesByFindOptions(findOptions: FindOptions<T>): Promise<Document<T>[]> {
+    private async getEntriesByFindOptions(
+        findOptions: FindOptions<T>,
+        hydrate: boolean = false
+    ): Promise<Document<T>[]> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    res(this.processEntries(findOptions));
+                    res(this.processEntries(findOptions, hydrate));
                 });
             })
         );
@@ -819,7 +827,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const item = await this.getEntriesByFindOptions(findOptions);
+                    const item = await this.getEntriesByFindOptions(findOptions, true);
 
                     if (item[0] === undefined) {
                         return res(null);
@@ -857,7 +865,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    const item = await this.getEntriesByFindOptions({ where: findOptions });
+                    const item = await this.getEntriesByFindOptions({ where: findOptions }, true);
 
                     if (item[0] === undefined) {
                         return res(null);
@@ -916,7 +924,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    return res(await this.getEntriesByFindOptions(findOptions));
+                    return res(await this.getEntriesByFindOptions(findOptions, true));
                 });
             })
         );
@@ -949,7 +957,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         return this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(this.rejector(rej), async () => {
-                    return res(await this.getEntriesByFindOptions({ where: findOptions }));
+                    return res(await this.getEntriesByFindOptions({ where: findOptions }, true));
                 });
             })
         );
