@@ -16,11 +16,13 @@ import type {
     DocumentInit,
     Validator,
     ObservedQuery,
+    RecordLink,
 } from '../../types';
 import { evaluateFindOptions } from './evaluateFindOptions';
 import { Crypto } from './Crypto';
 import { FlotsamError } from '../../utils/Errors/FlotsamError';
 import { Observable } from './Observable';
+import { isRecordLink } from '../Validators/isRecordLink.util';
 
 /**
  * @Class
@@ -97,8 +99,8 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
     #queue: Queue = new Queue();
     #crypt: Crypto | null = null;
     #observedQueries: Array<ObservedQuery<T>> = [];
-    constructor(private ctx: Flotsam, private namespace: string, private validationStrategy?: Validator<T>) {
-        this.#dir = resolve(ctx.root, this.namespace);
+    constructor(private ctx: Flotsam, private _namespace: string, private validationStrategy?: Validator<T>) {
+        this.#dir = resolve(ctx.root, this._namespace);
         this.#crypt = ctx.auth ? new Crypto(ctx.auth) : null;
 
         process.on('SIGINT', async () => {
@@ -108,6 +110,10 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         process.on('SIGTERM', async () => {
             await this.serialize();
         });
+    }
+
+    get namespace() {
+        return this._namespace;
     }
 
     /**
@@ -191,6 +197,10 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
                 res([...this.#documents.values()].map((doc) => ({ ...doc.toDoc() })));
             })
         );
+    }
+
+    public get documents(): Map<string, JSONDocument<T>> {
+        return this.#documents;
     }
 
     /**
@@ -344,11 +354,41 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         );
     }
 
+    private linkRecord(property: RecordLink) {
+        const { collections } = this.ctx;
+        const [namespace, id] = property.split(':');
+
+        const record = collections[namespace]?.documents.get(id);
+
+        if (!record || namespace === this.namespace) {
+            return {};
+        }
+
+        return this.hydrateRecord(record);
+    }
+
+    private hydrateRecord(record: JSONDocument<T>): Document<T> {
+        const hydratedProperties = Object.fromEntries(
+            Object.entries(record.data).map(([key, property]) => {
+                if (Array.isArray(property) && property.every(isRecordLink)) {
+                    return [key, property.map((item) => this.linkRecord(item))];
+                } else if (isRecordLink(property)) {
+                    return [key, this.linkRecord(property)];
+                } else {
+                    return [key, property];
+                }
+            })
+        );
+
+        const doc = { ...record.toDoc(), ...hydratedProperties };
+        return doc;
+    }
+
     private processEntries(findOptions: FindOptions<T>) {
         let items = [...this.#documents.entries()]
             .slice(0, findOptions.limit)
-            .filter(([, value]) => evaluateFindOptions(value.toDoc(), findOptions))
-            .map(([, doc]) => doc.toDoc());
+            .map(([, entry]) => this.hydrateRecord(entry))
+            .filter((doc) => evaluateFindOptions(doc, findOptions));
 
         if (findOptions.order) {
             const { by, property } = findOptions.order;

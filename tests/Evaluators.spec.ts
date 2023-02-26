@@ -15,6 +15,7 @@ import {
     LessThan,
     LessThanOrEqual,
     Contains,
+    Includes,
 } from '../src/lib/Evaluators';
 
 // Setup the test by creating a new Database instance and populate it with
@@ -23,8 +24,8 @@ import {
 test.beforeEach(async (t) => {
     const db = new Flotsam({ root: './tests/.store', quiet: true });
     await db.connect();
-    const test = await db.collect<{ data: string; number: number; obj: { key: string } }>('test');
-    await test.insertOne({ data: 'test', number: 2, obj: { key: 'name' } });
+    const test = await db.collect<{ data: string; number: number; obj: { key: string }; arr: string[] }>('test');
+    await test.insertOne({ data: 'test', number: 2, obj: { key: 'name' }, arr: ['name'] });
 
     ((t.context as Record<string, unknown>).db as Flotsam) = db;
 });
@@ -544,6 +545,42 @@ test.serial(
         await t.notThrowsAsync(async () => {
             ///@ts-expect-error
             await test.findOne({ where: { obj2: Contains({ key: Like('name') }) } });
+        });
+    }
+);
+
+/**
+ *  Includes
+ */
+
+test.serial('[Evaluators] Includes should find a value that is inside an Array.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number; arr: string[] }>('test');
+
+    const result = await test.findOne({ where: { arr: Includes(Like('name')) } });
+    t.not(result, null);
+    t.true(result?.arr.includes('name'));
+});
+
+test.serial('[Evaluators] Includes should throw when accessing a non existing property in strict mode.', async (t) => {
+    const db = (t.context as Record<string, unknown>).db as Flotsam;
+    const test = await db.collect<{ data: string; number: number; arr: string[] }>('test');
+
+    await t.throwsAsync(async () => {
+        ///@ts-expect-error
+        await test.findOne({ where: { arr2: Includes(Like('name'), { strict: true }) } });
+    });
+});
+
+test.serial(
+    '[Evaluators] Includes should not throw when accessing a non existing property not in strict mode.',
+    async (t) => {
+        const db = (t.context as Record<string, unknown>).db as Flotsam;
+        const test = await db.collect<{ data: string; number: number; arr: string[] }>('test');
+
+        await t.notThrowsAsync(async () => {
+            ///@ts-expect-error
+            await test.findOne({ where: { arr2: Includes(Like('name')) } });
         });
     }
 );

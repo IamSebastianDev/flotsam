@@ -27,3 +27,4 @@ export type { Subscriber } from './Subscriber';
 export type { MapFunction } from './MapFunction';
 export type { Handler } from './Handler';
 export type { ObservedQuery } from './ObservedQuery';
+export type { RecordLink } from './RecordLink';

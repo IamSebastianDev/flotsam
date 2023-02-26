@@ -55,13 +55,13 @@ export class Flotsam {
     connected: boolean = false;
 
     /**
-     * @type { Record<string, Collection<any>> }
+     * @type { Record<PropertyKey, Collection<any>> }
      * @private
      * @description
      * Object holding all deserialized collections
      */
 
-    #collections: Record<string, Collection<any>> = {};
+    collections: Record<PropertyKey, Collection<any>> = {};
 
     /**
      * @type { string | undefined }
@@ -242,12 +242,12 @@ export class Flotsam {
             this.emit('error', `🐙 \x1b[31m[Flotsam] Attempted collecting before connecting.\x1b[0m`);
         }
 
-        if (!this.#collections[namespace]) {
-            this.#collections[namespace] = new Collection<T>(this, namespace, validationStrategy);
-            await this.#collections[namespace].deserialize();
+        if (!this.collections[namespace]) {
+            this.collections[namespace] = new Collection<T>(this, namespace, validationStrategy);
+            await this.collections[namespace].deserialize();
         }
 
-        return this.#collections[namespace];
+        return this.collections[namespace];
     }
 
     /**
@@ -260,13 +260,13 @@ export class Flotsam {
      */
 
     async jettison(namespace: string, soft: boolean = false): Promise<boolean> {
-        if (!this.#collections[namespace]) return false;
+        if (!this.collections[namespace]) return false;
 
         if (!soft) {
-            await this.#collections[namespace].jettison();
+            await this.collections[namespace].jettison();
         }
 
-        delete this.#collections[namespace];
+        delete this.collections[namespace];
         return true;
     }
 
@@ -278,7 +278,7 @@ export class Flotsam {
 
     async close(): Promise<void> {
         await Promise.allSettled(
-            Object.values(this.#collections).map(async (collection) => {
+            Object.values(this.collections).map(async (collection) => {
                 return await collection.serialize();
             })
         );

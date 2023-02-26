@@ -2,7 +2,7 @@
 
 import { existsSync, readFileSync } from 'fs';
 import test from 'ava';
-import { Flotsam, IsString, Like, NotNull } from '../src';
+import { Collection, Contains, Flotsam, IsString, Like, Link, NotNull, RecordLink } from '../src';
 
 test.serial('[Flotsam] Instances correctly', (t) => {
     t.is(typeof new Flotsam({ root: './store' }), 'object');
@@ -579,4 +579,51 @@ test.serial('[Flotsam] Should give correct number of stored documents', async (t
     await db.close();
 
     t.is(count, 20);
+});
+
+test.serial('[Flotsam] Correctly find a linked record of a separate collection', async (t) => {
+    const db = new Flotsam({ root: './tests/.store', quiet: true });
+
+    await db.connect();
+
+    type User = {
+        name: string;
+        job: RecordLink<'jobs'>;
+    };
+
+    type Job = {
+        name: string;
+        users?: RecordLink<'users'>[];
+    };
+
+    const jobs = await db.collect<Job>('jobs');
+    const users = await db.collect<User>('users');
+
+    const job = await jobs.insertOne({
+        name: 'JobTitle',
+    });
+
+    if (!job) {
+        return t.fail('Document incorrectly updated.');
+    }
+
+    const user = await users.insertOne({
+        name: 'Name',
+        job: Link(jobs, job.id),
+    });
+
+    const result = await users.findOne({
+        where: {
+            job: Contains({
+                name: 'JobTitle',
+            }),
+        },
+    });
+
+    await db.jettison('users');
+    await db.jettison('jobs');
+    await db.close();
+
+    t.truthy(result);
+    t.is(result?.name, 'Name');
 });
