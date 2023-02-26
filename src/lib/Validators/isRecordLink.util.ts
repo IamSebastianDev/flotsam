@@ -8,5 +8,5 @@ export const isRecordLink = (value: unknown): value is RecordLink => {
 
     const [namespace, id] = value.split(':');
 
-    return !!(namespace && ObjectId.is(id));
+    return !!(namespace && id && ObjectId.is(id));
 };
