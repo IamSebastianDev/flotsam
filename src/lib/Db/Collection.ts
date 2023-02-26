@@ -197,6 +197,10 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
         );
     }
 
+    public get documents(): Map<string, JSONDocument<T>> {
+        return this.#documents;
+    }
+
     /**
      * @private
      * @method
