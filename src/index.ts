@@ -28,7 +28,7 @@ export type { Collection, ObjectId, JSONDocument } from './lib';
 export type {
     FlotsamInit,
     FlotsamEvent,
-    Subscriber,
+    HandlerFunction,
     Unsubscriber,
     EvaluatorFunction,
     Document,
@@ -41,4 +41,7 @@ export type {
     FindOptions,
     Validator,
     ValidatorFunction,
+    Subscription,
+    Subscriber,
+    MapFunction,
 } from './types';

@@ -3,7 +3,15 @@
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { FlotsamOperationError, __root } from '../../utils';
-import { FlotsamInit, FlotsamEvent, Unsubscriber, Subscriber, Callback, ErrorHandler, Validator } from '../../types';
+import {
+    FlotsamInit,
+    FlotsamEvent,
+    Unsubscriber,
+    Callback,
+    ErrorHandler,
+    Validator,
+    HandlerFunction,
+} from '../../types';
 import { Collection } from './Collection';
 import { Loq } from './Loq';
 import { Queue } from './Queue';
@@ -87,7 +95,7 @@ export class Flotsam {
 
     #loq: Loq = new Loq(this);
     #queue: Queue = new Queue();
-    #handlers: Record<FlotsamEvent, Array<Subscriber>> = {
+    #handlers: Record<FlotsamEvent, Array<HandlerFunction>> = {
         close: [],
         delete: [],
         deserialize: [],
@@ -291,7 +299,7 @@ export class Flotsam {
      * @returns { Unsubscriber } a function to unsubscribe and cleanup the subscriber.
      */
 
-    on(event: FlotsamEvent, handler: Subscriber): Unsubscriber {
+    on(event: FlotsamEvent, handler: HandlerFunction): Unsubscriber {
         this.#handlers[event].push(handler);
 
         return () => {
