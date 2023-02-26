@@ -26,6 +26,7 @@ export {
     CollectionOf,
     RecordFrom,
     Link,
+    Includes,
 } from './lib';
 export type { Collection, ObjectId, JSONDocument } from './lib';
 export type {

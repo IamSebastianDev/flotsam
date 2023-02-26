@@ -14,6 +14,7 @@ export {
     RegExp,
     Unsafe,
     Contains,
+    Includes,
 } from './Evaluators';
 export {
     NotNull,
