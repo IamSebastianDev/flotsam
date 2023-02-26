@@ -22,6 +22,8 @@ The Validator Function is used to validate a inserted value against a set of con
 -   [IsArray](./IsArray.validator.md) to validate a value to be an array
 -   [IsDate](./IsDate.validator.md) to validate a value to be a Date
 -   [ValidateNested](./ValidateNested.validator.md) to validate the properties of a given object
+-   [RecordFrom](./RecordFrom.validator.md) to validate a value to be a valid Record Link Token
+-   [CollectionOf](./CollectionOf.validator.md) to validate a value be an array of valid Record Link Tokens
 
 ## Using a Validator
 

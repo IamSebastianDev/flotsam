@@ -2,7 +2,7 @@
 
 # Fløtsam
 
-In depth documentation for `1.1.0`
+In depth documentation for `1.2.0`
 
 ## API Documentation
 

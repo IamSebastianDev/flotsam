@@ -23,6 +23,10 @@ export {
     ValidateNested,
     Contains,
     IsString,
+    CollectionOf,
+    RecordFrom,
+    Link,
+    Includes,
 } from './lib';
 export type { Collection, ObjectId, JSONDocument } from './lib';
 export type {
@@ -44,4 +48,5 @@ export type {
     Subscription,
     Subscriber,
     MapFunction,
+    RecordLink,
 } from './types';

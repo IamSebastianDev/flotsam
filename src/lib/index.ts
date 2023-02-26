@@ -1,6 +1,6 @@
 /** @format */
 
-export { Flotsam, Collection, ObjectId, JSONDocument } from './Db';
+export { Flotsam, Collection, ObjectId, JSONDocument, Link } from './Db';
 export {
     Exactly,
     GreaterThan,
@@ -14,5 +14,18 @@ export {
     RegExp,
     Unsafe,
     Contains,
+    Includes,
 } from './Evaluators';
-export { NotNull, IsType, IsArray, IsInt, IsText, IsNumber, IsString, IsDate, ValidateNested } from './Validators';
+export {
+    NotNull,
+    IsType,
+    IsArray,
+    IsInt,
+    IsText,
+    IsNumber,
+    IsString,
+    IsDate,
+    ValidateNested,
+    RecordFrom,
+    CollectionOf,
+} from './Validators';
