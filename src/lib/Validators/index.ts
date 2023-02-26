@@ -11,4 +11,5 @@ export { IsString } from './IsString.validator';
 export type { ValidatorFunction } from '../../types';
 export { IsDate } from './IsDate.validator';
 export { ValidateNested } from './ValidateNested';
+export { CollectionOf } from './CollectionOf.validator';
 export { RecordFrom } from './RecordFrom.validator';

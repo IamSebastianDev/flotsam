@@ -23,6 +23,8 @@ export {
     ValidateNested,
     Contains,
     IsString,
+    CollectionOf,
+    RecordFrom,
     Link,
 } from './lib';
 export type { Collection, ObjectId, JSONDocument } from './lib';
