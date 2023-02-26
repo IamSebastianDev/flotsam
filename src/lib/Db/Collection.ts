@@ -360,8 +360,12 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
 
         const record = collections[namespace]?.documents.get(id);
 
-        if (!record || namespace === this.namespace) {
-            return {};
+        if (namespace === this.namespace) {
+            return `<${property}>`;
+        }
+
+        if (!record) {
+            return undefined;
         }
 
         return this.hydrateRecord(record);
