@@ -1,6 +1,7 @@
 /** @format */
 
 import { RecordLink } from '../../types';
+import { FlotsamError } from '../../utils/Errors/FlotsamError';
 import { Collection } from './Collection';
 import { ObjectId } from './ObjectId';
 
@@ -13,12 +14,21 @@ import { ObjectId } from './ObjectId';
  * @returns
  */
 
-export const Link = (collection: string | Collection<Record<PropertyKey, unknown>>, recordId: ObjectId): RecordLink => {
+export const Link = (
+    collection: string | Collection<Record<PropertyKey, unknown>>,
+    recordId: string | ObjectId
+): RecordLink => {
     let namespace = collection;
 
     if (collection instanceof Collection && 'namespace' in collection) {
         namespace = collection.namespace;
     }
 
-    return `${namespace}:${recordId.valueOf()}`;
+    let id = recordId instanceof ObjectId ? recordId.valueOf() : ObjectId.is(recordId) ? recordId : null;
+
+    if (!id || !namespace) {
+        throw new FlotsamError(`Incorrect arguments supplied to create a valid Record Link Token.`);
+    }
+
+    return `${namespace}:${id}`;
 };
