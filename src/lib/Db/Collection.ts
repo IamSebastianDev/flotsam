@@ -102,7 +102,7 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
     constructor(private ctx: Flotsam, private _namespace: string, private validationStrategy?: Validator<T>) {
         this.#dir = resolve(ctx.root, this._namespace);
 
-        if (ctx._auth && ctx._auth.useAuthentication) {
+        if (ctx._auth && ctx._auth.useEncryption) {
             const { key } = ctx._auth;
             this.#crypt = new Crypto(key);
         }
