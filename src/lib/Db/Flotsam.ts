@@ -11,10 +11,16 @@ import {
     ErrorHandler,
     Validator,
     HandlerFunction,
+    FlotsamStorageInit,
+    FlotsamAuthInit,
+    FlotsamLogInit,
+    ConnectionSettings,
 } from '../../types';
 import { Collection } from './Collection';
 import { Loq } from './Loq';
 import { Queue } from './Queue';
+import { platform, homedir } from 'node:os';
+import { join, resolve } from 'node:path';
 
 /**
  * @description
@@ -40,12 +46,23 @@ import { Queue } from './Queue';
  */
 
 export class Flotsam {
+    _storage: FlotsamStorageInit = {};
+    _auth?: FlotsamAuthInit;
+    _log: FlotsamLogInit = {};
+    _connectionSettings!: ConnectionSettings;
+
     /**
      * @type { string }
      * @description
      * The absolute path of the directory to use as storage for the json documents
      */
-    root: string;
+    get root(): string {
+        const { databaseName } = this._connectionSettings;
+
+        return this._storage.useProjectStorage
+            ? __root(this._storage.dir || '', databaseName)
+            : resolve(this._storage.dir || Flotsam.RootStorageDirectory, databaseName);
+    }
 
     /**
      * @type { boolean }
@@ -63,36 +80,6 @@ export class Flotsam {
 
     collections: Record<PropertyKey, Collection<any>> = {};
 
-    /**
-     * @type { string | undefined }
-     * @description
-     * Optional property to set to enable / disable encrypting the physical
-     * `Documents` stored on disk. When set, the string given is used as key
-     * to encrypt the `Documents`.
-     */
-
-    auth?: string;
-
-    /**
-     * @type { boolean | undefined }
-     * @description
-     * Optional boolean flag to indicate if log statements should be
-     * suppressed. If set to true, no errors / infos will be written to
-     * `process.stdout`.
-     */
-
-    quiet?: boolean;
-
-    /**
-     * @type { string | undefined }
-     * @description
-     * Optional property to set to write a log file to a physical location.
-     * `quiet` must be set to false, otherwise all logs will be suppressed.
-     * The string given is interpreted as a path from the given root directory.
-     */
-
-    log?: string;
-
     #loq: Loq = new Loq(this);
     #queue: Queue = new Queue();
     #handlers: Record<FlotsamEvent, Array<HandlerFunction>> = {
@@ -108,19 +95,17 @@ export class Flotsam {
         error: [],
     };
 
-    constructor(init: FlotsamInit) {
-        this.root = __root(init.root);
-        this.auth = init.auth;
-        this.quiet = init.quiet;
-        this.log = init.log;
+    constructor(init: FlotsamInit = {}) {
+        Object.assign(
+            this,
+            Object.fromEntries(
+                Object.entries(init).map(([key, value]) => {
+                    return [`_${key}`, value];
+                })
+            )
+        );
 
         this.createInitialListeners();
-
-        process.on('uncaughtException', (error) => {
-            this.close().then(() => {
-                process.exit(1);
-            });
-        });
     }
 
     /**
@@ -129,6 +114,12 @@ export class Flotsam {
      */
 
     private createInitialListeners() {
+        process.on('uncaughtException', (error) => {
+            this.close().then(() => {
+                process.exit(1);
+            });
+        });
+
         this.on('error', (error) => {
             return this.#queue.enqueue(
                 new Promise((res) => {
@@ -147,7 +138,7 @@ export class Flotsam {
 
         this.on('connect', () => {
             this.connected = true;
-            !this.quiet && console.log(`🐙 \x1b[32m[Flotsam] DB Connected.\x1b[0m`);
+            !this._log?.quiet && console.log(`🐙 \x1b[32m[Flotsam] DB Connected.\x1b[0m`);
         });
 
         this.on('close', () => {
@@ -160,7 +151,7 @@ export class Flotsam {
 
         this.on('close', () => {
             this.connected = false;
-            !this.quiet && console.log(`🐙 \x1b[32m[Flotsam] DB Closed.\x1b[0m`);
+            !this._log?.quiet && console.log(`🐙 \x1b[32m[Flotsam] DB Closed.\x1b[0m`);
         });
     }
 
@@ -176,18 +167,21 @@ export class Flotsam {
      * const db = new Flotsam({ root: './.store' });
      * await db.connect();
      * ```
+     * @param { ConnectionSettings | ConnectionString } connection -
      * @param { Callback | null } [callback] - optional callback that will be executed when the connection is completed.
      * @param { ErrorHandler } [error] - optional error callback that will be executed when the connection fails.
      *
      * @returns { Promise<boolean> } `true` if the connection is established
      */
 
-    async connect(callback?: Callback | null, error?: ErrorHandler): Promise<boolean> {
+    async connect(connection: ConnectionSettings, callback?: Callback | null, error?: ErrorHandler): Promise<boolean> {
         if (this.connected) {
             const e = new FlotsamOperationError('Already connected.');
             this.emit('error', e);
             if (error && typeof error === 'function') error(e);
         }
+
+        this._connectionSettings = connection;
 
         return new Promise(async (res, rej) => {
             try {
@@ -283,6 +277,7 @@ export class Flotsam {
             })
         );
         this.emit('close');
+        this.connected = false;
     }
 
     /**
@@ -317,5 +312,18 @@ export class Flotsam {
 
     emit(event: FlotsamEvent, ...args: any[]): void {
         this.#handlers[event].forEach((handler) => handler(...args));
+    }
+
+    static get RootStorageDirectory(): string {
+        switch (platform()) {
+            case 'darwin':
+                return join(homedir(), 'Library', 'Application Support', '.flotsam');
+            case 'win32':
+                return join(process.env.APPDATA || process.env.LOCALAPPDATA || process.cwd(), '.flotsam');
+            case 'linux':
+                return join(homedir(), '.local', 'share', '.flotsam');
+            default:
+                throw new Error();
+        }
     }
 }

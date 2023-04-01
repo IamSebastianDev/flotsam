@@ -101,7 +101,11 @@ export class Collection<T extends Record<PropertyKey, unknown>> {
     #observedQueries: Array<ObservedQuery<T>> = [];
     constructor(private ctx: Flotsam, private _namespace: string, private validationStrategy?: Validator<T>) {
         this.#dir = resolve(ctx.root, this._namespace);
-        this.#crypt = ctx.auth ? new Crypto(ctx.auth) : null;
+
+        if (ctx._auth && ctx._auth.useAuthentication) {
+            const { key } = ctx._auth;
+            this.#crypt = new Crypto(key);
+        }
 
         process.on('SIGINT', async () => {
             await this.serialize();
