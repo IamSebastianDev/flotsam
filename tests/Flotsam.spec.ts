@@ -2,35 +2,40 @@
 
 import { existsSync, readFileSync } from 'fs';
 import test from 'ava';
-import { Collection, Contains, Flotsam, IsString, Like, Link, NotNull, RecordLink } from '../src';
+import { Collection, Contains, Flotsam, FlotsamInit, IsString, Like, Link, NotNull, RecordLink } from '../src';
+
+const init: FlotsamInit = {
+    log: { quiet: true },
+    storage: { useProjectStorage: true, dir: './.store' },
+};
 
 test.serial('[Flotsam] Instances correctly', (t) => {
-    t.is(typeof new Flotsam({ root: './store' }), 'object');
+    t.is(typeof new Flotsam(init), 'object');
 });
 
 test.serial('[Flotsam] Creates a collection', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     await db.collect('flotsam');
 
-    t.assert(existsSync('./tests/.store/flotsam'));
+    t.assert(existsSync('./.store/test/flotsam'));
 });
 
 test.serial('[Flotsam] Drops a collection', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     await db.collect('flotsam');
     await db.jettison('flotsam');
 
-    t.assert(!existsSync('./tests/.store/flotsam'));
+    t.assert(!existsSync('./.store/test/flotsam'));
 });
 
 test.serial('[Flotsam] Correctly serializes a collection', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     const item = await collection.insertOne({ test: 'test' });
 
@@ -40,14 +45,14 @@ test.serial('[Flotsam] Correctly serializes a collection', async (t) => {
 
     await db.close();
 
-    const file = readFileSync(`./tests/.store/flotsam/${item.id}`, 'utf-8');
+    const file = readFileSync(`./.store/test/flotsam/${item.id}`, 'utf-8');
     t.is(JSON.parse(file)._.test, 'test');
 });
 
 test.serial('[Flotsam] Correctly deserializes a collection', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     const [item] = await collection.findMany({ where: {} });
 
@@ -62,10 +67,11 @@ test.serial('[Flotsam] Correctly deserializes a collection', async (t) => {
 });
 
 test.serial('[Flotsam] Correctly serializes a collection encrypted', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true, auth: 'auth' });
+    const db = new Flotsam({ ...init, auth: { key: 'secret', useAuthentication: true } });
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
+
     const item = await collection.insertOne({ test: 'test' });
 
     if (!item) {
@@ -74,14 +80,14 @@ test.serial('[Flotsam] Correctly serializes a collection encrypted', async (t) =
 
     await db.close();
 
-    const file = readFileSync(`./tests/.store/flotsam/${item.id}`, 'utf-8');
+    const file = readFileSync(`./.store/test/flotsam/${item.id}`, 'utf-8');
     t.assert('vector' in JSON.parse(file) && 'content' in JSON.parse(file));
 });
 
 test.serial('[Flotsam] Correctly deserializes an encrypted collection', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true, auth: 'auth' });
+    const db = new Flotsam({ ...init, auth: { key: 'secret', useAuthentication: true } });
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     const [item] = await collection.findMany({ where: {} });
 
@@ -96,9 +102,9 @@ test.serial('[Flotsam] Correctly deserializes an encrypted collection', async (t
 });
 
 test.serial('[Flotsam] Inserts a record', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     const item = await collection.insertOne({ test: 'test' });
 
@@ -109,9 +115,9 @@ test.serial('[Flotsam] Inserts a record', async (t) => {
 });
 
 test.serial('[Flotsam] Inserts a record and validates them', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam', {
         validate: {
             test: [NotNull, IsString],
@@ -126,9 +132,9 @@ test.serial('[Flotsam] Inserts a record and validates them', async (t) => {
 });
 
 test.serial('[Flotsam] Inserts multiple records', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     const items = await collection.insertMany({ test: 'test' }, { test: 'test2' });
 
@@ -139,9 +145,9 @@ test.serial('[Flotsam] Inserts multiple records', async (t) => {
 });
 
 test.serial('[Flotsam] Finds a record using find options', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     await collection.insertOne({ test: 'test' });
     const item = await collection.findOne({
@@ -158,9 +164,9 @@ test.serial('[Flotsam] Finds a record using find options', async (t) => {
 });
 
 test.serial('[Flotsam] Finds multiple records using find options', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     await collection.insertOne({ test: 'test' });
     await collection.insertOne({ test: 'test2' });
@@ -179,9 +185,9 @@ test.serial('[Flotsam] Finds multiple records using find options', async (t) => 
 });
 
 test.serial('[Flotsam] Finds multiple records using find options and sort them descending', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ index: number }>('flotsam');
     await collection.insertOne({ index: 0 });
     await collection.insertOne({ index: 1 });
@@ -204,9 +210,9 @@ test.serial('[Flotsam] Finds multiple records using find options and sort them d
 });
 
 test.serial('[Flotsam] Finds multiple records using find options and sort them ascending', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ index: number }>('flotsam');
     await collection.insertOne({ index: 0 });
     await collection.insertOne({ index: 1 });
@@ -229,9 +235,9 @@ test.serial('[Flotsam] Finds multiple records using find options and sort them a
 });
 
 test.serial('[Flotsam] Finds multiple records using find options and limit them', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ index: number }>('flotsam');
 
     await Promise.all(
@@ -253,9 +259,9 @@ test.serial('[Flotsam] Finds multiple records using find options and limit them'
 });
 
 test.serial('[Flotsam] Finds multiple records using find options and paginate them', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ index: number }>('flotsam');
 
     await Promise.all(
@@ -283,9 +289,9 @@ test.serial('[Flotsam] Finds multiple records using find options and paginate th
 });
 
 test.serial('[Flotsam] Finds multiple records using findByProperty options', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     await collection.insertOne({ test: 'test' });
     await collection.insertOne({ test: 'test2' });
@@ -302,9 +308,9 @@ test.serial('[Flotsam] Finds multiple records using findByProperty options', asy
 });
 
 test.serial('[Flotsam] Finds a record using findByProperty options', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     await collection.insertOne({ test: 'test' });
     const item = await collection.findOneBy({
@@ -319,9 +325,9 @@ test.serial('[Flotsam] Finds a record using findByProperty options', async (t) =
 });
 
 test.serial('[Flotsam] Finds a record using findById', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     const inserted = await collection.insertOne({ test: 'test' });
 
@@ -340,9 +346,9 @@ test.serial('[Flotsam] Finds a record using findById', async (t) => {
 });
 
 test.serial('[Flotsam] Updates a record using find options', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     await collection.insertOne({ test: 'test' });
 
@@ -369,9 +375,9 @@ test.serial('[Flotsam] Updates a record using find options', async (t) => {
 });
 
 test.serial('[Flotsam] Updates a record by property search', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     await collection.insertOne({ test: 'test' });
 
@@ -396,9 +402,9 @@ test.serial('[Flotsam] Updates a record by property search', async (t) => {
 });
 
 test.serial('[Flotsam] Updates a record by Id', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     const inserted = await collection.insertOne({ test: 'test' });
 
@@ -422,9 +428,9 @@ test.serial('[Flotsam] Updates a record by Id', async (t) => {
 });
 
 test.serial('[Flotsam] Update multiple records using find options', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ index: number }>('flotsam');
 
     await Promise.all(
@@ -459,9 +465,9 @@ test.serial('[Flotsam] Update multiple records using find options', async (t) =>
 });
 
 test.serial('[Flotsam] Deletes a record using find options', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     const inserted = await collection.insertOne({ test: 'test' });
 
@@ -488,9 +494,9 @@ test.serial('[Flotsam] Deletes a record using find options', async (t) => {
 });
 
 test.serial('[Flotsam] Deletes a record by a property', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     const inserted = await collection.insertOne({ test: 'test' });
 
@@ -515,9 +521,9 @@ test.serial('[Flotsam] Deletes a record by a property', async (t) => {
 });
 
 test.serial('[Flotsam] Deletes a record using its id', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
     const inserted = await collection.insertOne({ test: 'test' });
 
@@ -535,9 +541,9 @@ test.serial('[Flotsam] Deletes a record using its id', async (t) => {
 });
 
 test.serial('[Flotsam] Delete multiple records using find options', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ index: number }>('flotsam');
 
     await Promise.all(
@@ -562,9 +568,9 @@ test.serial('[Flotsam] Delete multiple records using find options', async (t) =>
 });
 
 test.serial('[Flotsam] Should give correct number of stored documents', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ index: number }>('flotsam');
 
     await Promise.all(
@@ -582,9 +588,9 @@ test.serial('[Flotsam] Should give correct number of stored documents', async (t
 });
 
 test.serial('[Flotsam] Correctly find a linked record of a separate collection', async (t) => {
-    const db = new Flotsam({ root: './tests/.store', quiet: true });
+    const db = new Flotsam(init);
 
-    await db.connect();
+    await db.connect({ databaseName: 'test' });
 
     type User = {
         name: string;
