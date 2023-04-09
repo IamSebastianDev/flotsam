@@ -195,13 +195,8 @@ export class Flotsam {
             this.emit('error', e);
             if (error && typeof error === 'function') error(e);
         }
-        console.log('test');
 
-        try {
-            this._connectionSettings = this.parseConnectionSettings(connection);
-        } catch (e) {
-            console.log({ e });
-        }
+        this._connectionSettings = this.parseConnectionSettings(connection);
 
         return new Promise(async (res, rej) => {
             try {
