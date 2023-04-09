@@ -51,14 +51,12 @@ After importing the class, an instance is created that will represent the Databa
 ```ts
 import { Flotsam } from 'flotsam/db';
 
-// create the Fløtsam instance and configure it
-const db = new Flotsam({
-    root: '.store', // path to the directory to store the JSON Documents
-});
+// create the Fløtsam instance
+const db = new Flotsam();
 
-// connect to the Database instance. If the storage directory
+// connect to a Database instance. If the storage directory
 // does not yet exist, it will be created in this step.
-await db.connect();
+await db.connect('flotsam');
 ```
 
 ### Collections
@@ -68,8 +66,8 @@ A **Collection** is a subdivision of the Database instance, that holds a certain
 ```ts
 import { Flotsam } from 'flotsam/db';
 
-const db = new Flotsam({ root: '.store' });
-await db.connect();
+const db = new Flotsam();
+await db.connect('flotsam');
 
 // create the collection under a 'jetsam' namespace
 // this will create the physical directory, if it does not yet exist
@@ -83,8 +81,8 @@ const collection = await db.collect<{ description: string }>('jetsam');
 ```ts
 import { Flotsam } from 'flotsam/db';
 
-const db = new Flotsam({ root: '.store' });
-await db.connect();
+const db = new Flotsam();
+await db.connect('flotsam');
 
 // creating a custom schema to ensure type safety
 // during operations
@@ -121,8 +119,8 @@ While using **Find Options** is powerful, **Evaluators** make these Find Options
 import { Flotsam } from 'flotsam/db';
 import { Like, GreaterThan } from 'flotsam/evaluators';
 
-const db = new Flotsam({ root: '.store' });
-await db.connect();
+const db = new Flotsam();
+await db.connect('flotsam');
 
 type Jetsam = {
     description: string;
@@ -155,8 +153,8 @@ A **Collection** can receive a second optional argument to work as a **Schema Va
 import { Flotsam } from 'flotsam/db';
 import { NotNull, IsText, IsInt } from 'flotsam/validators';
 
-const db = new Flotsam({ root: '.store' });
-await db.connect();
+const db = new Flotsam();
+await db.connect('flotsam');
 
 type Jetsam = {
     description: string;

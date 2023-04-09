@@ -6,43 +6,91 @@ The `Flotsam` class is the main interface for using the database. All operations
 
 ## Configuration
 
-A configuration object can be used to configure the **Fløtsam** instance.
+A optional configuration object can be used to configure the **Fløtsam** instance by passing it to it's constructor.
+
+### Configuration Properties - Storage
 
 ```ts
 import { Flotsam } from 'flotsam/db';
 
 const db = new Flotsam({
-    root: '.store', // Directory to store the created JSON Documents.
-    log: '.log', // File to store error and query logs.
-    quiet: false, // Boolean indicating if logs should be suppressed.
-    auth: 'secretKey', // Encryption key for encrypting the stored Document.
+    //... other config options
+    storage: {
+        useProjectStorage: true //  use the cwd of the project as storage root
+        dir: './.storage' // use a dedicated .storage directory to create the database instances
+    }
+})
+```
+
+#### `useProjectStorage`
+
+Type: `boolean` | `undefined`
+
+Boolean indicating if the storage directory should be created from the projects root / `cwd` or from the operating systems main storage directory.
+
+#### `dir`
+
+Type: `string` | `undefined`
+
+Optional string used as path between the storage root, which is either the projects `cwd` or the operating systems main storage directory, and the database name as directory.
+
+### Configuration Properties - Log
+
+```ts
+import { Flotsam } from 'flotsam/db';
+
+const db = new Flotsam({
+    //... other config options
+    log: {
+        path: '.log', // the log file will be named .log
+        quiet: false, // do not suppress logs
+        maxSafeFileSize: 157286400, // set a maximum filesize
+    },
 });
 ```
 
-### Configuration Properties
+#### `path`
 
-#### `Root`
+Type: `string` | `undefined`
 
-Type: `string`
-
-String describing the root of the directory used to store the JSON documents.
-
-#### `log`
-
-Type: `string | undefined`
-
-If a string is passed as property, the string will be used as location for a log file, where all errors are logged to.
-The logfile will be created relative to the storage root of the db.
+If a string is used as property, the string will be used as location for a log file, where all errors are logged to.
+The logfile will be created relative to the project's root. If the property is undefined, no log file is created.
 
 #### `quiet`
 
-Type: `boolean | undefined`
+Type: `boolean` | `undefined`
 
 Boolean indicating if logs & warnings should be suppressed.
 
-#### `auth`
+#### `maxSafeFileSize`
 
-Type: `string | undefined
+Type: `number` | `undefined`
+
+Optional number indicating the maximum size of the log file in bytes before it's being truncated. If 0 is passed, the log file will never be truncated.
+
+### Configuration Properties - Auth
+
+```ts
+import { Flotsam } from 'flotsam/db';
+
+const init = {
+    //... other config options
+    auth: {
+        useEncryption: true,
+        key: 'secretKey',
+    },
+};
+```
+
+#### `useEncryption`
+
+Type: `boolean` | `undefined
+
+Boolean indicating if encryption should be used.
+
+#### `key`
+
+Type: `string` | `undefined
 
 A string used as secret to encrypt the JSON Documents on disk. If no string is passed,
 no encryption will take place.`
@@ -63,9 +111,9 @@ Closes the connection of the **Flotsam** instance and serializes all Documents t
 await db.close();
 ```
 
-#### `flotsam.connect(callback: Callback | null, error?: ErrorHandler): Promise<boolean>`
+#### `flotsam.connect(connectionSettings: ConnectionSettings | string, callback: Callback | null, error?: ErrorHandler): Promise<boolean>`
 
-Connects the **Flotsam** instance. The underlying storage space is validated or created in this step. A success and error Callback can be passed to method, which will be called when the connection succeeds or fails.
+Connects the **Flotsam** instance. The underlying storage space is validated or created in this step. A connection settings object or a database name string is required. A success and error Callback can be passed to method, which will be called when the connection succeeds or fails.
 
 ```ts
 import { Flotsam } from 'flotsam/db';
