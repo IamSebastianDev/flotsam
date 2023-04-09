@@ -2,7 +2,7 @@
 
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { FlotsamOperationError, __root } from '../../utils';
+import { FlotsamOperationError, __root, isSafeCharacter } from '../../utils';
 import {
     FlotsamInit,
     FlotsamEvent,
@@ -19,7 +19,7 @@ import {
 import { Collection } from './Collection';
 import { Loq } from './Loq';
 import { Queue } from './Queue';
-import { platform, homedir } from 'node:os';
+import { platform, homedir, type } from 'node:os';
 import { join, resolve } from 'node:path';
 
 /**
@@ -31,14 +31,14 @@ import { join, resolve } from 'node:path';
  * ```ts
  * import { Flotsam } from "flotsam/db";
  *
- * const db = new Flotsam({
- *      // the physical location for the stored documents
- *      root: '.store'
- * })
+ * // Flotsam is designed to work without configuration
+ * // by using a sensible set of default settings
+ * const db = new Flotsam()
  *
  * // connect to the database to ensure that the necessary setup
- * // operations are performed.
- * await db.connect();
+ * // operations are performed. You need to provide a
+ * // Name for the database that is created / used.
+ * await db.connect('flotsam');
  *
  * // creating a typed collection
  * const collection = await db.collect<{name: string}>('collection')
@@ -155,6 +155,17 @@ export class Flotsam {
         });
     }
 
+    private parseConnectionSettings(connectionSettings: ConnectionSettings | string): ConnectionSettings {
+        let databaseName =
+            typeof connectionSettings === 'string' ? connectionSettings : connectionSettings.databaseName;
+
+        if (![...databaseName].every(isSafeCharacter)) {
+            throw new FlotsamOperationError('Connection string contains invalid characters.');
+        }
+
+        return { ...(typeof connectionSettings === 'string' ? {} : connectionSettings), databaseName };
+    }
+
     /**
      * @description
      * Method to initialize the Database. Check if the physical storage
@@ -167,21 +178,30 @@ export class Flotsam {
      * const db = new Flotsam({ root: './.store' });
      * await db.connect();
      * ```
-     * @param { ConnectionSettings | ConnectionString } connection -
+     * @param { ConnectionSettings | string } connection - either a connection settings object or a string used as database name.
      * @param { Callback | null } [callback] - optional callback that will be executed when the connection is completed.
      * @param { ErrorHandler } [error] - optional error callback that will be executed when the connection fails.
      *
      * @returns { Promise<boolean> } `true` if the connection is established
      */
 
-    async connect(connection: ConnectionSettings, callback?: Callback | null, error?: ErrorHandler): Promise<boolean> {
+    async connect(
+        connection: ConnectionSettings | string,
+        callback?: Callback | null,
+        error?: ErrorHandler
+    ): Promise<boolean> {
         if (this.connected) {
             const e = new FlotsamOperationError('Already connected.');
             this.emit('error', e);
             if (error && typeof error === 'function') error(e);
         }
+        console.log('test');
 
-        this._connectionSettings = connection;
+        try {
+            this._connectionSettings = this.parseConnectionSettings(connection);
+        } catch (e) {
+            console.log({ e });
+        }
 
         return new Promise(async (res, rej) => {
             try {

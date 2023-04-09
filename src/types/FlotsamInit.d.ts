@@ -7,7 +7,7 @@ export type FlotsamLogInit = {
      * @description
      * Path where the logfile will be created. If no value is passed, no logfile will be created.
      */
-    file?: string;
+    path?: string;
     /**
      * @type { boolean }
      * @optional

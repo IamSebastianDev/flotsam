@@ -67,7 +67,7 @@ test.serial('[Flotsam] Correctly deserializes a collection', async (t) => {
 });
 
 test.serial('[Flotsam] Correctly serializes a collection encrypted', async (t) => {
-    const db = new Flotsam({ ...init, auth: { key: 'secret', useAuthentication: true } });
+    const db = new Flotsam({ ...init, auth: { key: 'secret', useEncryption: true } });
 
     await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');
@@ -85,7 +85,7 @@ test.serial('[Flotsam] Correctly serializes a collection encrypted', async (t) =
 });
 
 test.serial('[Flotsam] Correctly deserializes an encrypted collection', async (t) => {
-    const db = new Flotsam({ ...init, auth: { key: 'secret', useAuthentication: true } });
+    const db = new Flotsam({ ...init, auth: { key: 'secret', useEncryption: true } });
 
     await db.connect({ databaseName: 'test' });
     const collection = await db.collect<{ test: string }>('flotsam');

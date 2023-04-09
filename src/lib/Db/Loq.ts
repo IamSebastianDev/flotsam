@@ -21,7 +21,7 @@ export class Loq {
     }
 
     get file() {
-        return this.ctx._log.file;
+        return this.ctx._log.path;
     }
 
     get quiet() {
@@ -39,7 +39,7 @@ export class Loq {
                 return safeAsyncAbort(rej, async () => {
                     if (this.quiet || !this.file) return;
 
-                    const destination = resolve(this.file);
+                    const destination = __root(this.file);
 
                     if (!existsSync(destination)) {
                         await writeFile(destination, '', 'utf-8');
