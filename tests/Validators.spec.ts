@@ -338,6 +338,8 @@ test('[Validators] ValidateNested correctly validates a deeply nested property',
 
 test('[Validators] ValidateNested correctly validates a value that is not an object', (t) => {
     const value = 'test';
+
+    //@ts-expect-error
     const validator = ValidateNested({ key: 'test' });
 
     t.throws(() => validator(value, 'test-property'));
@@ -345,6 +347,8 @@ test('[Validators] ValidateNested correctly validates a value that is not an obj
 
 test('[Validators] ValidateNested correctly validates a value that is an empty object', (t) => {
     const value = {};
+
+    //@ts-expect-error
     const validator = ValidateNested({ key: 'test' });
 
     t.throws(() => validator(value, 'test-property'));
