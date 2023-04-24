@@ -42,9 +42,9 @@ import { Flotsam } from 'flotsam/db';
 const db = new Flotsam({
     //... other config options
     log: {
-        path: '.log', // the log file will be named .log
+        path: './logs/log.file', // the log file will be named log.file and be stored in the 'logs' directory
         quiet: false, // do not suppress logs
-        maxSafeFileSize: 157286400, // set a maximum filesize
+        maxSafeFileSize: 157286400, // set a maximum filesize in byte
     },
 });
 ```
