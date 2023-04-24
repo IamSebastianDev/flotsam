@@ -1,7 +1,7 @@
 /** @format */
 
 export const isSafeCharacter = (character: string) => {
-    return [
+    return new Set([
         'A',
         'B',
         'C',
@@ -67,5 +67,5 @@ export const isSafeCharacter = (character: string) => {
         '-',
         '_',
         '.',
-    ].includes(character);
+    ]).has(character);
 };
