@@ -318,4 +318,15 @@ export class Flotsam {
     emit(event: FlotsamEvent, ...args: any[]): void {
         this.#handlers[event].forEach((handler) => handler(...args));
     }
+
+    /**
+     * @tasks
+     * - Create export method
+     * - Create import method
+     * - Create CLI Command for importing /exporting
+     * - Create a Meta Data Header for export files
+     */
+
+    export(path: string) {}
+    ingest(path: string) {}
 }
