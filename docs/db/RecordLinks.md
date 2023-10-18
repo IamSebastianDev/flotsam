@@ -40,9 +40,9 @@ import { Flotsam, Link } from 'flotsam/db';
 import { Contains } from 'flotsam/evaluators';
 import { NotNull, IsString, IsInt, RecordFrom, CollectionOf } from 'flotsam/validators';
 
-const db = new Flotsam({ root: './tests/.store', quiet: true });
+const db = new Flotsam();
 
-await db.connect();
+await db.connect('flotsam');
 
 // Create the models used for the Collections.
 

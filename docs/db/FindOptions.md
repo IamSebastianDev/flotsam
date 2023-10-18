@@ -107,8 +107,9 @@ Results can be ordered and sorted by any property inside the **Document** in asc
 import { Flotsam } from 'flotsam/db';
 import { Like } from 'flotsam/evaluators';
 
-const db = new Flotsam({ root: '.store' });
-await db.connect();
+const db = new Flotsam();
+
+await db.connect('flotsam');
 
 const collection = await db.collect<{ value: string }>('collection');
 
@@ -130,8 +131,9 @@ To enable pagination, results can be `skipped` and `taken`.
 import { Flotsam } from 'flotsam/db';
 import { Like } from 'flotsam/evaluators';
 
-const db = new Flotsam({ root: '.store' });
-await db.connect();
+const db = new Flotsam();
+
+await db.connect('flotsam');
 
 const collection = await db.collect<{ value: string }>('collection');
 
@@ -151,8 +153,9 @@ The query can have a limit passed, which will limit the number of results to ope
 import { Flotsam } from 'flotsam/db';
 import { Like } from 'flotsam/evaluators';
 
-const db = new Flotsam({ root: '.store' });
-await db.connect();
+const db = new Flotsam();
+
+await db.connect('flotsam');
 
 const collection = await db.collect<{ value: string }>('collection');
 

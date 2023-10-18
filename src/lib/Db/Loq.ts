@@ -14,10 +14,22 @@ import { Queue } from './Queue';
 export class Loq {
     #maxSafeFileSize: number = 157286400;
     #queue: Queue = new Queue();
-    constructor(private ctx: Flotsam) {}
+    constructor(private ctx: Flotsam) {
+        if (this.ctx._log?.maxSafeFileSize && this.ctx._log?.maxSafeFileSize > 0) {
+            this.#maxSafeFileSize = this.ctx._log.maxSafeFileSize;
+        }
+    }
+
+    get file() {
+        return this.ctx._log.path;
+    }
+
+    get quiet() {
+        return this.ctx._log.quiet;
+    }
 
     private writeToStdOut(message: string) {
-        if (this.ctx.quiet) return;
+        if (this.ctx._log.quiet) return;
         process.stdout.write(message);
     }
 
@@ -25,9 +37,9 @@ export class Loq {
         this.#queue.enqueue(
             new Promise((res, rej) => {
                 return safeAsyncAbort(rej, async () => {
-                    if (this.ctx.quiet || !this.ctx.log) return;
+                    if (this.quiet || !this.file) return;
 
-                    const destination = resolve(this.ctx.root, this.ctx.log);
+                    const destination = __root(this.file);
 
                     if (!existsSync(destination)) {
                         await writeFile(destination, '', 'utf-8');

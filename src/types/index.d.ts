@@ -1,5 +1,5 @@
 /** @format */
-export type { FlotsamInit } from './FlotsamInit';
+export type { FlotsamInit, FlotsamAuthInit, FlotsamLogInit, FlotsamStorageInit } from './FlotsamInit';
 export type { FlotsamEvent } from './FlotsamEvent';
 export type { HandlerFunction } from './HandlerFunction';
 export type { Unsubscriber } from './Unsubscriber';
@@ -28,3 +28,4 @@ export type { MapFunction } from './MapFunction';
 export type { Handler } from './Handler';
 export type { ObservedQuery } from './ObservedQuery';
 export type { RecordLink } from './RecordLink';
+export type { ConnectionSettings } from './ConnectionSettings';

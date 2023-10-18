@@ -10,3 +10,4 @@ export { FlotsamValidationError } from './Errors/FlotsamValidationError';
 export { FlotsamOperationError } from './Errors/FlotsamOperationError';
 export { FlotsamEvaluationError } from './Errors/FlotsamEvaluationError';
 export { FlotsamObservableError } from './Errors/FlotsamObservableError';
+export { isSafeCharacter } from './isSafeCharacter';

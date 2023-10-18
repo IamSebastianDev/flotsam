@@ -60,10 +60,8 @@ import express from 'express';
 const app = express();
 
 + // create the database
-+ const db = new Flotsam({
-+     root: '.store'
-+ })
-+ await db.connect()
++ const db = new Flotsam()
++ await db.connect('flotsam')
 
 // add the json body parser middleware
 app.use(express.json());
@@ -124,10 +122,8 @@ import { Flotsam } from 'flotsam/db';
 const app = express();
 
 // create the database
-const db = new Flotsam({
-    root: '.store',
-});
-await db.connect();
+const db = new Flotsam();
+await db.connect('flotsam');
 
 // add the json body parser middleware
 app.use(express.json());

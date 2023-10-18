@@ -44,10 +44,8 @@ Open the `main.ts` file you created and add the following lines to import and cr
 ```ts
 + import { Flotsam } from 'flotsamjs/db';
 
-+ const db = new Flotsam({
-+     root: '.store',
-+ });
-+ await db.connect();
++ const db = new Flotsam();
++ await db.connect('flotsam');
 ```
 
 Create a `Collection`.
@@ -55,10 +53,8 @@ Create a `Collection`.
 ```ts
 import { Flotsam } from 'flotsamjs/db';
 
-const db = new Flotsam({
-    root: '.store',
-});
-await db.connect();
+const db = new Flotsam();
+await db.connect('flotsam');
 
 // create a Collection.
 // this will also create a equally named directory in the
@@ -154,10 +150,8 @@ In case you want to remove a collection completely, you can `jettison` it.
 ```ts
 import { Flotsam } from 'flotsamjs/db';
 
-const db = new Flotsam({
-    root: '.store',
-});
-await db.connect();
+const db = new Flotsam();
+await db.connect('flotsam');
 
 // create a Collection.
 // this will also create a equally named directory in the
